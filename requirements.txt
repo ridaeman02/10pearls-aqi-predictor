@@ -1,0 +1,10 @@
+python-dotenv
+requests
+pandas
+numpy
+scikit-learn
+tensorflow
+hopsworks
+streamlit
+shap
+matplotlib
