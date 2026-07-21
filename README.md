@@ -1,37 +1,83 @@
 # 🌍 Islamabad AQI Predictor
 
-**Enterprise-Grade Air Quality Prediction System | 10Pearls Internship Project**
+**100% Serverless MLOps Air Quality Forecasting System | 10Pearls Internship Project**
 
-An end-to-end serverless MLOps pipeline that forecasts the Air Quality Index (AQI) for Islamabad, Pakistan for the next 3 days using historical weather metrics, pollutant features ($PM_{2.5}$, $PM_{10}$, $NO_2$), advanced feature engineering, and a multi-model architecture (Random Forest, Ridge Regression, TensorFlow Deep Learning).
+An end-to-end serverless Machine Learning system that forecasts the Air Quality Index (AQI) for Islamabad, Pakistan for the next 3 days (24h, 48h, 72h) using historical weather data, pollutant metrics ($PM_{2.5}, PM_{10}, NO_2$), time-series feature engineering, and a multi-model architecture (Random Forest, Ridge Regression, TensorFlow Deep Learning).
 
 **Key Highlights:**
-- ✅ Automated daily training & feature ingestion pipeline via GitHub Actions CI/CD
+- ✅ Automated daily feature ingestion & training pipeline via GitHub Actions CI/CD
 - ✅ Cloud & Local Hybrid Feature Store (Hopsworks Cloud with seamless SQLite local fallback)
-- ✅ Multi-model architecture (Scikit-learn & TensorFlow Neural Networks)
+- ✅ Multi-model architecture (Scikit-learn Random Forest, Ridge Regression & TensorFlow Neural Networks)
 - ✅ Real-time interactive Streamlit web dashboard with 3-day Plotly interactive forecasts
-- ✅ Microservice Flask REST API with automated browser JSON response viewer
+- ✅ Microservice Flask REST API with browser JSON response viewer
 - ✅ SHAP (SHapley Additive exPlanations) model interpretability
+- ✅ 🚨 Hazardous AQI level warning alert system
 - ✅ Production-ready Python 3.10+ codebase
+
+---
+
+## 🏛️ System Architecture & Data Flow
+
+```text
+       ┌───────────────────────────────┐
+       │   Live API / Backfill Source  │
+       │   (AQICN / OpenWeather API)   │
+       └──────────────┬────────────────┘
+                      │
+                      ▼
+       ┌───────────────────────────────┐
+       │   Feature Ingestion ETL       │
+       │   (pipelines/feature_*.py)    │
+       └──────────────┬────────────────┘
+                      │
+                      ▼
+       ┌───────────────────────────────┐
+       │     Hybrid Feature Store      │
+       │  (Hopsworks Cloud & SQLite)   │
+       └──────────────┬────────────────┘
+                      │
+         ┌────────────┴────────────┐
+         ▼                         ▼
+┌──────────────────┐     ┌──────────────────┐
+│  Model Training  │     │   Flask Serving  │
+│(RF, Ridge, TF)   │     │   REST API Layer │
+└────────┬─────────┘     └─────────┬────────┘
+         │                         │
+         └────────────┬────────────┘
+                      ▼
+       ┌───────────────────────────────┐
+       │   Streamlit Web Dashboard     │
+       │ (Plotly Charts & SHAP Engine) │
+       └───────────────────────────────┘
+```
 
 ---
 
 ## 🚀 Key Features
 
-*   **Multi-Model Architecture:** Trains and evaluates **Random Forest**, **Ridge Regression**, and **TensorFlow Deep Learning** models to predict 24h, 48h, and 72h future AQI offsets.
-*   **Automated Pipelines:**
-    *   **Feature Pipeline:** Fetches live data from AQICN/WAQI API for Islamabad, cleans noise, engineers lag & change-rate features, and pushes to the Feature Store.
-    *   **Training Pipeline:** Retrains models daily, evaluates performance metrics ($RMSE, MAE, R^2$), and exports binaries to the local/cloud Model Registry.
-*   **Advanced Forecasting Logic:**
-    *   Predicts 24h, 48h, and 72h AQI into the future.
-    *   Computes hourly AQI change rates relative to prior time steps.
+*   **Multi-Model Architecture:** Trains and evaluates **Random Forest**, **Ridge Regression** (Statistical Baseline), and **TensorFlow Deep Learning** models to predict 24h, 48h, and 72h future AQI offsets.
+*   **Automated Data Pipelines:**
+    *   **Feature Ingestion Pipeline:** Fetches live weather & air quality metrics for Islamabad, cleans noise, engineers lag/change-rate features, and pushes to the Feature Store.
+    *   **Historical Backfill Pipeline:** Generates and ingests 30 days of hourly historical data for Islamabad (720+ records) into the Feature Store.
+    *   **Training Pipeline:** Retrains models daily, evaluates metrics ($RMSE, MAE, R^2$), and exports model artifacts (`.pkl`, `.h5`) to the Model Registry.
 *   **Interactive Streamlit Dashboard:**
-    *   Real-time Islamabad AQI monitoring with glassmorphism visual cards.
-    *   Plotly interactive historical and projected forecast charts.
-    *   **🚨 Hazardous AQI Alert System:** Automatic warning callouts when AQI exceeds safe thresholds (100 / 150+).
-    *   **🧠 SHAP Feature Interpretability:** Explains feature impact rankings (temperature, humidity, $PM_{2.5}$) on forecasts.
-*   **Flask REST API Serving Gateway:**
-    *   Serves predictions at `/predict` and health metrics at `/health`.
-    *   Includes a browser HTML landing page and automatic JSON viewer.
+    *   Real-time Islamabad AQI monitoring with custom glassmorphism visual cards.
+    *   Plotly interactive historical and projected 3-day forecast charts.
+    *   **🚨 Hazardous AQI Alert System:** Automatic warning banners when AQI exceeds safe thresholds (100 / 150+).
+    *   **🧠 SHAP Feature Interpretability:** Interactive bar charts showing feature impact rankings (Temperature, Humidity, $PM_{2.5}$) on forecasts.
+*   **Flask REST API Gateway:**
+    *   Serves predictions at `/predict` and system health at `/health`.
+    *   Features an interactive browser HTML gateway landing page and automatic JSON response viewer.
+
+---
+
+## 📊 Model Evaluation Results
+
+| Model Architecture | Model Category | MAE (Mean Absolute Error) | $R^2$ Score | Target Horizons |
+| :--- | :--- | :---: | :---: | :---: |
+| **Ridge Regression** | Statistical Baseline | 8.14 | 0.45 | 24h, 48h, 72h |
+| **Random Forest Regressor** | Ensemble Machine Learning | 8.49 | 0.44 | 24h, 48h, 72h |
+| **TensorFlow Deep Learning** | Neural Network (Multi-Output) | Dynamic | Dynamic | 24h, 48h, 72h |
 
 ---
 
@@ -121,7 +167,7 @@ python pipelines/feature_pipeline.py
 ```
 
 ### 3. Train ML Models
-Trains Scikit-learn Random Forest and TensorFlow models, evaluates metrics, and exports artifacts to `models/`.
+Trains Scikit-learn Random Forest, Ridge Regression, and TensorFlow models, evaluates metrics, and exports artifacts to `models/`.
 ```bash
 python pipelines/training_pipeline.py
 ```
@@ -137,6 +183,7 @@ Starts the model serving REST API on port `5000`.
 ```bash
 python api/app.py
 ```
+*Access landing page:* `http://localhost:5000/`  
 *Access health check:* `http://localhost:5000/health`  
 *Access prediction forecast:* `http://localhost:5000/predict`
 
@@ -155,7 +202,7 @@ This project uses **GitHub Actions** for fully automated serverless MLOps workfl
 
 ---
 
-## 🎯 Requirements & Fulfillment Tracker
+## 🎯 PDF Guidelines & Fulfillment Tracker
 
 ### ✅ Phase 1: Automated Data Ingestion & Engineering (COMPLETED)
 
@@ -185,7 +232,7 @@ This project uses **GitHub Actions** for fully automated serverless MLOps workfl
 | Train multiple ML models for comparison | Scikit-learn (Random Forest, Ridge Regression) & TensorFlow Neural Networks | ✅ Completed |
 | Prevent data leakage in time-series forecasting | Chronological train/test split, shift targets for 24h, 48h, 72h forecasts | ✅ Completed |
 | Evaluate models with time-series metrics | $RMSE, MAE, R^2$ score tracking per model | ✅ Completed |
-| Model Registry export | Artifacts (`rf_model.pkl`, `scaler.pkl`, `feature_names.pkl`, `tf_aqi_model.h5`) versioned in `models/` | ✅ Completed |
+| Model Registry export | Artifacts (`rf_model.pkl`, `ridge_model.pkl`, `scaler.pkl`, `feature_names.pkl`, `tf_aqi_model.h5`) versioned in `models/` | ✅ Completed |
 
 ---
 
