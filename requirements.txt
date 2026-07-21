@@ -6,5 +6,7 @@ scikit-learn
 tensorflow
 hopsworks
 streamlit
+flask
 shap
 matplotlib
+plotly

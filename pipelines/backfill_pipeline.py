@@ -1,9 +1,13 @@
 import os
+import sys
 import datetime
 import pandas as pd
 import numpy as np
 from dotenv import load_dotenv
-import hopsworks
+
+# Ensure root workspace directory is in sys.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from pipelines.feature_store import get_feature_store
 
 # Load environment variables
 load_dotenv()
@@ -70,33 +74,25 @@ def generate_historical_data(city: str, days: int = 365) -> pd.DataFrame:
     return df
 
 def backfill_to_feature_store():
-    # 1. Connect to Hopsworks Feature Store
-    api_key = os.getenv("HOPSWORKS_API_KEY")
-    if not api_key:
-        print("Warning: HOPSWORKS_API_KEY environment variable not set. Will prompt in console if not logged in.")
-        
-    project = hopsworks.login()
-    fs = project.get_feature_store()
+    # 1. Connect to Local Feature Store
+    fs = get_feature_store()
     
-    # Generate historical data for Karachi
-    df = generate_historical_data(city="Karachi", days=30)
+    # Generate historical data for Islamabad (30 days)
+    df = generate_historical_data(city="Islamabad", days=30)
     
-    # 2. Define schema & Create/Get Feature Group
-    print("Creating/Getting Feature Group on Hopsworks...")
+    # 2. Get/Create Feature Group
+    print("Connecting to Feature Group...")
     aqi_fg = fs.get_or_create_feature_group(
         name="aqi_predictions_fg",
         version=1,
         primary_key=['city', 'timestamp'],
-        description="AQI and Weather monitoring hourly feature group including raw pollutants and derived features.",
-        online_enabled=True,
-        statistics_config={"enabled": True, "histograms": True, "correlations": True}
+        description="AQI and Weather monitoring hourly feature group including raw pollutants and derived features."
     )
     
     # 3. Insert data into the Feature Group
-    print("Inserting data into Hopsworks Feature Store...")
-    # The insert method automatically creates the schema based on pandas dataframe types
-    aqi_fg.insert(df, write_options={"wait_for_job": False})
-    print("Data backfill successfully triggered in Hopsworks.")
+    print("Inserting backfill historical dataset into Feature Store...")
+    aqi_fg.insert(df)
+    print("[SUCCESS] Data backfill completed successfully!")
 
 if __name__ == "__main__":
     backfill_to_feature_store()
