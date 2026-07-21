@@ -281,10 +281,116 @@ def home():
     </html>
     """, 200
 
+def render_json_or_html(data, status_code=200):
+    """
+    Renders beautiful HTML JSON syntax viewer if requested from browser,
+    otherwise returns raw JSON response.
+    """
+    accept_header = request.headers.get('Accept', '')
+    if 'text/html' in accept_header:
+        import json
+        pretty_json = json.dumps(data, indent=4)
+        return f"""
+        <!DOCTYPE html>
+        <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>API JSON Response Viewer</title>
+                <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+                <style>
+                    :root {{
+                        --bg: #0B0F19;
+                        --panel: rgba(22, 30, 49, 0.7);
+                        --border: rgba(255, 255, 255, 0.08);
+                        --text: #F8FAFC;
+                        --text-muted: #94A3B8;
+                        --accent-blue: #38BDF8;
+                        --accent-purple: #818CF8;
+                        --green: #10B981;
+                    }}
+                    body {{
+                        font-family: 'Plus Jakarta Sans', sans-serif;
+                        background-color: var(--bg);
+                        color: var(--text);
+                        margin: 0;
+                        padding: 40px 20px;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        min-height: 100vh;
+                        box-sizing: border-box;
+                    }}
+                    .card {{
+                        background: var(--panel);
+                        border: 1px solid var(--border);
+                        border-radius: 20px;
+                        padding: 30px;
+                        width: 100%;
+                        max-width: 750px;
+                        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+                        backdrop-filter: blur(16px);
+                    }}
+                    h2 {{
+                        margin-top: 0;
+                        font-size: 1.4rem;
+                        font-weight: 700;
+                        color: var(--accent-blue);
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                    }}
+                    .status {{
+                        font-size: 0.8rem;
+                        background: rgba(16, 185, 129, 0.1);
+                        color: var(--green);
+                        border: 1px solid rgba(16, 185, 129, 0.2);
+                        padding: 4px 12px;
+                        border-radius: 8px;
+                    }}
+                    pre {{
+                        background: #07090E;
+                        border: 1px solid var(--border);
+                        border-radius: 12px;
+                        padding: 20px;
+                        font-family: 'JetBrains Mono', monospace;
+                        font-size: 0.9rem;
+                        color: #F59E0B;
+                        overflow-x: auto;
+                        line-height: 1.5;
+                        margin: 20px 0;
+                    }}
+                    .back-btn {{
+                        display: inline-block;
+                        color: var(--text-muted);
+                        text-decoration: none;
+                        font-size: 0.85rem;
+                        font-weight: 600;
+                        transition: color 0.2s;
+                    }}
+                    .back-btn:hover {{
+                        color: var(--accent-blue);
+                    }}
+                </style>
+            </head>
+            <body>
+                <div class="card">
+                    <h2>
+                        <span>⚡ JSON Response Viewer</span>
+                        <span class="status">HTTP {status_code} OK</span>
+                    </h2>
+                    <pre>{pretty_json}</pre>
+                    <a href="/" class="back-btn">&larr; Return to API Gateway</a>
+                </div>
+            </body>
+        </html>
+        """, status_code
+    return jsonify(data), status_code
+
 @app.route("/health", methods=["GET"])
 def health_check():
     """Health check endpoint."""
-    return jsonify({
+    return render_json_or_html({
         "status": "ok",
         "service": "Pearls AQI Predictor REST API",
         "city": os.getenv("CITY", "Islamabad"),
@@ -293,7 +399,7 @@ def health_check():
             "tensorflow": tf_model is not None,
             "scaler": scaler is not None
         }
-    }), 200
+    }, 200)
 
 @app.route("/predict", methods=["GET", "POST"])
 def predict():
@@ -364,10 +470,10 @@ def predict():
             predictions = preds[0]
 
         if predictions is None:
-            return jsonify({
+            return render_json_or_html({
                 "status": "error",
                 "message": "No functional prediction model available."
-            }), 500
+            }, 500)
 
         forecast_24h = max(0.0, float(predictions[0]))
         forecast_48h = max(0.0, float(predictions[1]))
@@ -375,7 +481,7 @@ def predict():
 
         risk_level = get_risk_level(current_aqi)
 
-        return jsonify({
+        return render_json_or_html({
             "status": "success",
             "city": city,
             "timestamp": record_timestamp,
@@ -387,13 +493,13 @@ def predict():
                 "72h": round(forecast_72h, 2)
             },
             "model_used": model_used
-        }), 200
+        }, 200)
 
     except Exception as e:
-        return jsonify({
+        return render_json_or_html({
             "status": "error",
             "message": f"Prediction failed: {str(e)}"
-        }), 500
+        }, 500)
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
