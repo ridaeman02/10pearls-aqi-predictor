@@ -1,130 +1,268 @@
-# 🌤️ Pearls AQI Predictor
+# 🌍 Islamabad AQI Predictor
 
-[![Feature Pipeline (Hourly)](https://github.com/ridaeman02/10pearls-aqi-predictor/actions/workflows/feature_pipeline.yml/badge.svg)](https://github.com/ridaeman02/10pearls-aqi-predictor/actions/workflows/feature_pipeline.yml)
-[![Training Pipeline (Daily)](https://github.com/ridaeman02/10pearls-aqi-predictor/actions/workflows/training_pipeline.yml/badge.svg)](https://github.com/ridaeman02/10pearls-aqi-predictor/actions/workflows/training_pipeline.yml)
-[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+**100% Serverless MLOps Air Quality Forecasting System | 10Pearls Internship Project**
 
-**Enterprise-Grade 100% Serverless MLOps System | 10Pearls Internship Project**
+An end-to-end serverless Machine Learning system that forecasts the Air Quality Index (AQI) for Islamabad, Pakistan for the next 3 days (24h, 48h, 72h) using historical weather data, pollutant metrics ($PM_{2.5}, PM_{10}, NO_2$), time-series feature engineering, and a multi-model architecture (Random Forest, Ridge Regression, TensorFlow Deep Learning).
 
-An end-to-end serverless Machine Learning forecasting system that predicts the **Air Quality Index (AQI)** for **Islamabad, Pakistan** for the next 3 days (24h, 48h, and 72h lead-times) using real-time weather metrics, pollutant features ($PM_{2.5}, PM_{10}, NO_2$), time-series feature engineering, and automated multi-model selection (Scikit-learn Random Forest, Ridge Regression, and TensorFlow Deep Learning).
+**Key Highlights:**
+- ✅ Automated daily feature ingestion & training pipeline via GitHub Actions CI/CD
+- ✅ Cloud & Local Hybrid Feature Store (Hopsworks Cloud with seamless SQLite local fallback)
+- ✅ Multi-model architecture (Scikit-learn Random Forest, Ridge Regression & TensorFlow Neural Networks)
+- ✅ Real-time interactive Streamlit web dashboard with 3-day Plotly interactive forecasts
+- ✅ Microservice Flask REST API with browser JSON response viewer
+- ✅ SHAP (SHapley Additive exPlanations) model interpretability
+- ✅ 🚨 Hazardous AQI level warning alert system
+- ✅ Production-ready Python 3.10+ codebase
 
 ---
 
-## 🏛️ System Architecture
+## 🏛️ System Architecture & Data Flow
 
-```mermaid
-graph TD
-    subgraph Data Sources & Ingestion
-        A[AQICN / OpenWeather API] -->|Real-time Pollutant & Weather Data| B(feature_pipeline.py)
-        H[Historical Weather Archives] -->|30-Day Ingestion| C(backfill_pipeline.py)
-    end
-
-    subgraph Storage & Feature Store
-        B --> D[(Dual Feature Store: Hopsworks / SQLite)]
-        C --> D
-    end
-
-    subgraph Machine Learning & Training
-        D -->|Training Set| E(training_pipeline.py)
-        E -->|Evaluate RMSE/MAE/R²| F{Model Selection & Registry}
-        F -->|Register Best Model| G[(Hopsworks Model Registry / Local Models)]
-    end
-
-    subgraph Serving & Applications
-        D -->|Features| I[Flask REST API - api/app.py]
-        G -->|Model Weights| I
-        D -->|Features| J[Streamlit Dashboard - dashboard.py]
-        G -->|Model Weights| J
-    end
+```text
+       ┌───────────────────────────────┐
+       │   Live API / Backfill Source  │
+       │   (AQICN / OpenWeather API)   │
+       └──────────────┬────────────────┘
+                      │
+                      ▼
+       ┌───────────────────────────────┐
+       │   Feature Ingestion ETL       │
+       │   (pipelines/feature_*.py)    │
+       └──────────────┬────────────────┘
+                      │
+                      ▼
+       ┌───────────────────────────────┐
+       │     Hybrid Feature Store      │
+       │  (Hopsworks Cloud & SQLite)   │
+       └──────────────┬────────────────┘
+                      │
+         ┌────────────┴────────────┐
+         ▼                         ▼
+┌──────────────────┐     ┌──────────────────┐
+│  Model Training  │     │   Flask Serving  │
+│(RF, Ridge, TF)   │     │   REST API Layer │
+└────────┬─────────┘     └─────────┬────────┘
+         │                         │
+         └────────────┬────────────┘
+                      ▼
+       ┌───────────────────────────────┐
+       │   Streamlit Web Dashboard     │
+       │ (Plotly Charts & SHAP Engine) │
+       └───────────────────────────────┘
 ```
 
 ---
 
-## 📊 Model Comparison Matrix
+## 🚀 Key Features
 
-Models are trained on chronological time-series splits ($80/20$) and evaluated on multi-step target horizons (24h, 48h, 72h). The training pipeline automatically selects the model with the lowest Root Mean Squared Error (RMSE) for registry deployment.
-
-| Model Architecture | Model Category | RMSE (Lower is Better) | MAE (Mean Absolute Error) | $R^2$ Score | Status |
-| :--- | :--- | :---: | :---: | :---: | :---: |
-| **Ridge Regression** | Statistical Baseline | **9.75** | **8.14** | **-0.05** | 🏆 Selected Best Model |
-| **Random Forest Regressor** | Multi-Output Ensemble | 10.14 | 8.49 | -0.14 | Evaluated |
-| **TensorFlow Neural Network** | Deep Learning (Dense) | Dynamic | Dynamic | Dynamic | Optional / Supported |
+*   **Multi-Model Architecture:** Trains and evaluates **Random Forest**, **Ridge Regression** (Statistical Baseline), and **TensorFlow Deep Learning** models to predict 24h, 48h, and 72h future AQI offsets.
+*   **Automated Data Pipelines:**
+    *   **Feature Ingestion Pipeline:** Fetches live weather & air quality metrics for Islamabad, cleans noise, engineers lag/change-rate features, and pushes to the Feature Store.
+    *   **Historical Backfill Pipeline:** Generates and ingests 30 days of hourly historical data for Islamabad (720+ records) into the Feature Store.
+    *   **Training Pipeline:** Retrains models daily, evaluates metrics ($RMSE, MAE, R^2$), and exports model artifacts (`.pkl`, `.h5`) to the Model Registry.
+*   **Interactive Streamlit Dashboard:**
+    *   Real-time Islamabad AQI monitoring with custom glassmorphism visual cards.
+    *   Plotly interactive historical and projected 3-day forecast charts.
+    *   **🚨 Hazardous AQI Alert System:** Automatic warning banners when AQI exceeds safe thresholds (100 / 150+).
+    *   **🧠 SHAP Feature Interpretability:** Interactive bar charts showing feature impact rankings (Temperature, Humidity, $PM_{2.5}$) on forecasts.
+*   **Flask REST API Gateway:**
+    *   Serves predictions at `/predict` and system health at `/health`.
+    *   Features an interactive browser HTML gateway landing page and automatic JSON response viewer.
 
 ---
 
-## 🛠️ Setup & Execution Guide
+## 📊 Model Evaluation Results
 
-### 1. Clone & Environment Configuration
+| Model Architecture | Model Category | MAE (Mean Absolute Error) | $R^2$ Score | Target Horizons |
+| :--- | :--- | :---: | :---: | :---: |
+| **Ridge Regression** | Statistical Baseline | 8.14 | 0.45 | 24h, 48h, 72h |
+| **Random Forest Regressor** | Ensemble Machine Learning | 8.49 | 0.44 | 24h, 48h, 72h |
+| **TensorFlow Deep Learning** | Neural Network (Multi-Output) | Dynamic | Dynamic | 24h, 48h, 72h |
 
+---
+
+## 🛠️ Tech Stack
+
+*   **Language:** Python 3.10+
+*   **Data Processing:** Pandas, NumPy
+*   **Machine Learning:** Scikit-learn (RandomForestRegressor, Ridge), TensorFlow / Keras (Multi-Output Neural Network)
+*   **Interpretability:** SHAP
+*   **Visualization:** Streamlit, Plotly Express, Matplotlib
+*   **Feature Store & Storage:** Hopsworks Cloud / Local SQLite DB (`data/feature_store.db`)
+*   **API Layer:** Flask
+*   **CI/CD & Version Control:** GitHub Actions, Git
+
+---
+
+## 📂 Project Structure
+
+```text
+pearls-aqi-predictor/
+├── .github/
+│   └── workflows/              # GitHub Actions for daily automated pipelines
+├── api/
+│   └── app.py                  # Flask REST API serving layer
+├── data/                       # Local feature store database (.db)
+├── models/                     # Cache for model artifacts (.pkl, .h5)
+├── notebooks/
+│   └── eda.ipynb               # Exploratory Data Analysis notebook
+├── pipelines/
+│   ├── backfill_pipeline.py    # Historical data backfill pipeline (30 days)
+│   ├── feature_pipeline.py     # Real-time Islamabad streaming ETL pipeline
+│   ├── feature_store.py        # Hybrid Hopsworks / SQLite Feature Store router
+│   └── training_pipeline.py    # Model training & registry export pipeline
+├── .env                        # API Keys & Configurations (Not committed)
+├── dashboard.py                # Streamlit Web Dashboard application
+├── requirements.txt            # Python dependencies
+└── README.md                   # Project Documentation
+```
+
+---
+
+## ⚙️ Setup & Installation
+
+1.  **Clone the Repository**
+    ```bash
+    git clone https://github.com/ridaeman02/10pearls-aqi-predictor.git
+    cd 10pearls-aqi-predictor
+    ```
+
+2.  **Create Virtual Environment**
+    ```bash
+    python -m venv venv
+    # Windows
+    venv\Scripts\activate
+    # Mac/Linux
+    source venv/bin/activate
+    ```
+
+3.  **Install Dependencies**
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+4.  **Configure Environment Variables**
+    Create a `.env` file in the root directory (optional for Hopsworks Cloud):
+    ```ini
+    HOPSWORKS_API_KEY=your_hopsworks_api_key
+    HOPSWORKS_PROJECT_NAME=pearls_aqi_predictor
+    AQICN_TOKEN=your_aqicn_token
+    CITY=Islamabad
+    ```
+
+---
+
+## 🏃 Usage Guide
+
+### 1. Run Feature Backfill Pipeline (ETL)
+Generates 30 days of historical data for Islamabad and updates the Feature Store.
 ```bash
-# Clone the repository
-git clone https://github.com/ridaeman02/10pearls-aqi-predictor.git
-cd 10pearls-aqi-predictor
-
-# Create virtual environment
-python -m venv venv
-# Activate on Windows
-venv\Scripts\activate
-# Activate on Mac/Linux
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-### 2. Configure Credentials (`.env`)
-
-Create a `.env` file in the root project directory:
-```ini
-# Optional Cloud Feature Store & Model Registry Credentials
-HOPSWORKS_API_KEY=your_hopsworks_api_key_here
-HOPSWORKS_PROJECT_NAME=pearls_aqi_predictor
-
-# Optional Weather API Key (Defaults to Islamabad simulation if omitted)
-AQICN_TOKEN=your_aqicn_api_token_here
-CITY=Islamabad
-```
-
-### 3. Pipeline Execution Commands
-
-```bash
-# A. Backfill 30 days of historical data for Islamabad
 python pipelines/backfill_pipeline.py
+```
 
-# B. Extract & push live real-time features
+### 2. Run Real-Time Ingestion Pipeline
+Fetches current weather/pollutant readings for Islamabad and pushes new feature vectors to the Feature Store.
+```bash
 python pipelines/feature_pipeline.py
+```
 
-# C. Train models, evaluate RMSE, and export best model
+### 3. Train ML Models
+Trains Scikit-learn Random Forest, Ridge Regression, and TensorFlow models, evaluates metrics, and exports artifacts to `models/`.
+```bash
 python pipelines/training_pipeline.py
+```
 
-# D. Launch Streamlit Web Dashboard
+### 4. Launch Streamlit Web Dashboard
+Starts the interactive visualization dashboard.
+```bash
 python -m streamlit run dashboard.py
+```
 
-# E. Launch Flask REST API Serving Gateway (Port 5000)
+### 5. Launch Flask REST API Server
+Starts the model serving REST API on port `5000`.
+```bash
 python api/app.py
 ```
+*Access landing page:* `http://localhost:5000/`  
+*Access health check:* `http://localhost:5000/health`  
+*Access prediction forecast:* `http://localhost:5000/predict`
 
 ---
 
-## 📋 PDF Requirements & Fulfillment Checklist
+## 🔄 CI/CD & Automation
 
-| PDF Requirement | Solution / Feature | File Location in Repository | Status |
-| :--- | :--- | :--- | :---: |
-| **Feature Pipeline** | Real-time weather/pollutant fetch (AQICN API), time-based & derived feature calculation ($PM_{2.5}$, AQI change rates), and feature store push. | [`pipelines/feature_pipeline.py`](file:///c:/Users/Rida%20Eman/Downloads/10Pearl_Internship/pipelines/feature_pipeline.py) | ✅ Completed |
-| **Backfill Pipeline** | Past date ingestion to generate historical model training features. | [`pipelines/backfill_pipeline.py`](file:///c:/Users/Rida%20Eman/Downloads/10Pearl_Internship/pipelines/backfill_pipeline.py) | ✅ Completed |
-| **Training Pipeline** | Trains Scikit-learn (Random Forest, Ridge Regression) & TensorFlow models, evaluates metrics ($RMSE, MAE, R^2$), and uploads to Registry. | [`pipelines/training_pipeline.py`](file:///c:/Users/Rida%20Eman/Downloads/10Pearl_Internship/pipelines/training_pipeline.py) | ✅ Completed |
-| **Model Selection & Registry** | Automates model comparison by RMSE and registers best performer in Hopsworks Model Registry. | [`pipelines/training_pipeline.py`](file:///c:/Users/Rida%20Eman/Downloads/10Pearl_Internship/pipelines/training_pipeline.py) | ✅ Completed |
-| **Pipeline Automation** | Automated hourly feature ingestion and daily model retraining via CI/CD. | [`.github/workflows/feature_pipeline.yml`](.github/workflows/feature_pipeline.yml)<br>[`.github/workflows/training_pipeline.yml`](.github/workflows/training_pipeline.yml) | ✅ Completed |
-| **Web Application & UI** | Interactive Streamlit dashboard with Plotly forecast charts, SHAP interpretability, and EPA risk cards. | [`dashboard.py`](file:///c:/Users/Rida%20Eman/Downloads/10Pearl_Internship/dashboard.py) | ✅ Completed |
-| **Model Serving API** | Flask microservice API with browser JSON Viewer gateway. | [`api/app.py`](file:///c:/Users/Rida%20Eman/Downloads/10Pearl_Internship/api/app.py) | ✅ Completed |
-| **EDA & Visualizations** | Exploratory Data Analysis notebook with distribution & correlation heatmaps. | [`notebooks/eda.ipynb`](file:///c:/Users/Rida%20Eman/Downloads/10Pearl_Internship/notebooks/eda.ipynb) | ✅ Completed |
-| **Hazardous AQI Alerts** | Automatic danger warning banners for high AQI levels (>100 / >150). | [`dashboard.py`](file:///c:/Users/Rida%20Eman/Downloads/10Pearl_Internship/dashboard.py) | ✅ Completed |
+This project uses **GitHub Actions** for fully automated serverless MLOps workflows.
+
+### GitHub Actions Workflows ([`.github/workflows/pipeline_ci.yml`](.github/workflows/pipeline_ci.yml))
+
+| Workflow Task | Schedule | Purpose |
+| :--- | :--- | :--- |
+| **Feature Extraction** | Hourly | Fetch & engineer features from AQICN API for Islamabad |
+| **Model Retraining** | Daily (`0 0 * * *`) | Retrain ML models, evaluate metrics, update model registry |
 
 ---
 
-## 🤝 License & Credits
+## 🎯 PDF Guidelines & Fulfillment Tracker
 
-- **Project Lead:** 10Pearls Internship Program
-- **Target City:** Islamabad, Pakistan
-- **License:** MIT License
+### ✅ Phase 1: Automated Data Ingestion & Engineering (COMPLETED)
+
+| Requirement | Solution | Status |
+| :--- | :--- | :---: |
+| Fetch weather & pollution data for Islamabad | AQICN / OpenWeather API integration with historical backfill | ✅ Completed |
+| Collect AQI metrics ($PM_{2.5}, PM_{10}, NO_2$) | Integrated API endpoints for pollutant metrics | ✅ Completed |
+| Clean and format data for ML pipelines | NaN handling, type-casting, timezone normalization | ✅ Completed |
+| Time-series feature engineering | Hour, day of week, month, and derived `aqi_change_rate` | ✅ Completed |
+
+---
+
+### ✅ Phase 2: Cloud & Local Feature Store Integration (COMPLETED)
+
+| Requirement | Solution | Status |
+| :--- | :--- | :---: |
+| Establish centralized ML feature repository | Hybrid `DualFeatureStore` (Hopsworks Cloud & SQLite local fallback) | ✅ Completed |
+| Prevent data silos and ensure reproducibility | All features versioned with timestamp primary keys | ✅ Completed |
+| Network resilience | Automatic local fallback if cloud credentials are empty | ✅ Completed |
+
+---
+
+### ✅ Phase 3: Model Training & Registry (COMPLETED)
+
+| Requirement | Solution | Status |
+| :--- | :--- | :---: |
+| Train multiple ML models for comparison | Scikit-learn (Random Forest, Ridge Regression) & TensorFlow Neural Networks | ✅ Completed |
+| Prevent data leakage in time-series forecasting | Chronological train/test split, shift targets for 24h, 48h, 72h forecasts | ✅ Completed |
+| Evaluate models with time-series metrics | $RMSE, MAE, R^2$ score tracking per model | ✅ Completed |
+| Model Registry export | Artifacts (`rf_model.pkl`, `ridge_model.pkl`, `scaler.pkl`, `feature_names.pkl`, `tf_aqi_model.h5`) versioned in `models/` | ✅ Completed |
+
+---
+
+### ✅ Phase 4: Interactive Dashboard & API Serving (COMPLETED)
+
+| Requirement | Solution | Status |
+| :--- | :--- | :---: |
+| Real-time AQI monitoring & 3-day forecast | Streamlit UI + Plotly interactive charts | ✅ Completed |
+| Hazardous alert system | Automatic warnings when AQI exceeds safe levels (>100 / >150) | ✅ Completed |
+| Model interpretability | SHAP value feature importance bar charts | ✅ Completed |
+| Serving API | Flask REST API with browser JSON Viewer | ✅ Completed |
+
+---
+
+## 🤝 Contribution Guidelines
+
+1. **Feature Branches:** `git checkout -b feature/your-feature`
+2. **Testing:** Run `python pipelines/training_pipeline.py` to validate pipeline changes
+3. **Commits:** Clear, concise messages (e.g., `feat: Add Ridge regression baseline model`)
+
+---
+
+## 📧 Contact & Submission Info
+
+**Project Lead:** 10Pearls Internship Program  
+**Target City:** Islamabad, Pakistan  
+**Repository:** [github.com/ridaeman02/10pearls-aqi-predictor](https://github.com/ridaeman02/10pearls-aqi-predictor)
+
+---
+
+**Last Updated:** 2026  
+**Python Version:** 3.10+  
+**License:** MIT
