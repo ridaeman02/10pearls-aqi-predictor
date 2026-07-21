@@ -1,5 +1,10 @@
 # 🌍 Islamabad AQI Predictor
 
+[![Feature Pipeline (Hourly)](https://github.com/ridaeman02/10pearls-aqi-predictor/actions/workflows/feature_pipeline.yml/badge.svg)](https://github.com/ridaeman02/10pearls-aqi-predictor/actions/workflows/feature_pipeline.yml)
+[![Training Pipeline (Daily)](https://github.com/ridaeman02/10pearls-aqi-predictor/actions/workflows/training_pipeline.yml/badge.svg)](https://github.com/ridaeman02/10pearls-aqi-predictor/actions/workflows/training_pipeline.yml)
+[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 **100% Serverless MLOps Air Quality Forecasting System | 10Pearls Internship Project**
 
 An end-to-end serverless Machine Learning system that forecasts the Air Quality Index (AQI) for Islamabad, Pakistan for the next 3 days (24h, 48h, 72h) using historical weather data, pollutant metrics ($PM_{2.5}, PM_{10}, NO_2$), time-series feature engineering, and a multi-model architecture (Random Forest, Ridge Regression, TensorFlow Deep Learning).
@@ -71,13 +76,15 @@ An end-to-end serverless Machine Learning system that forecasts the Air Quality 
 
 ---
 
-## 📊 Model Evaluation Results
+## 📊 Model Comparison Matrix
 
-| Model Architecture | Model Category | MAE (Mean Absolute Error) | $R^2$ Score | Target Horizons |
-| :--- | :--- | :---: | :---: | :---: |
-| **Ridge Regression** | Statistical Baseline | 8.14 | 0.45 | 24h, 48h, 72h |
-| **Random Forest Regressor** | Ensemble Machine Learning | 8.49 | 0.44 | 24h, 48h, 72h |
-| **TensorFlow Deep Learning** | Neural Network (Multi-Output) | Dynamic | Dynamic | 24h, 48h, 72h |
+Models are trained on chronological time-series splits ($80/20$) and evaluated on multi-step target horizons (24h, 48h, 72h). The training pipeline automatically selects the model with the lowest Root Mean Squared Error (RMSE) for registry deployment.
+
+| Model Architecture | Model Category | RMSE (Lower is Better) | MAE (Mean Absolute Error) | $R^2$ Score | Status |
+| :--- | :--- | :---: | :---: | :---: | :---: |
+| **Ridge Regression** | Statistical Baseline | **9.75** | **8.14** | **-0.05** | 🏆 Selected Best Model |
+| **Random Forest Regressor** | Multi-Output Ensemble | 10.14 | 8.49 | -0.14 | Evaluated |
+| **TensorFlow Neural Network** | Deep Learning (Dense) | Dynamic | Dynamic | Dynamic | Optional / Supported |
 
 ---
 
@@ -193,11 +200,11 @@ python api/app.py
 
 This project uses **GitHub Actions** for fully automated serverless MLOps workflows.
 
-### GitHub Actions Workflows ([`.github/workflows/pipeline_ci.yml`](.github/workflows/pipeline_ci.yml))
+### GitHub Actions Workflows ([`.github/workflows/feature_pipeline.yml`](.github/workflows/feature_pipeline.yml) & [`.github/workflows/training_pipeline.yml`](.github/workflows/training_pipeline.yml))
 
 | Workflow Task | Schedule | Purpose |
 | :--- | :--- | :--- |
-| **Feature Extraction** | Hourly | Fetch & engineer features from AQICN API for Islamabad |
+| **Feature Extraction** | Hourly (`0 * * * *`) | Fetch & engineer features from AQICN API for Islamabad |
 | **Model Retraining** | Daily (`0 0 * * *`) | Retrain ML models, evaluate metrics, update model registry |
 
 ---
