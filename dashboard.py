@@ -22,33 +22,78 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Premium Custom CSS (Dark Glassmorphism & Cyberpunk Neon Accents)
-st.markdown("""
+# Sidebar Controls & Theme Selector
+st.sidebar.markdown("## ⚙️ Settings Panel")
+st.sidebar.markdown("Target Region: **Islamabad, Pakistan**")
+
+# Sun / Moon Theme Switcher
+theme_mode = st.sidebar.radio(
+    "🎨 Display Theme Mode:",
+    ["🌙 Dark Mode", "☀️ Light Mode"],
+    index=0
+)
+is_dark = "Dark" in theme_mode
+
+selected_model_name = st.sidebar.selectbox(
+    "Active Forecasting Engine:",
+    ["Ridge Regression (Statistical)", "Random Forest Regressor", "TensorFlow Deep Learning"]
+)
+
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 🔄 Serverless ETL")
+if st.sidebar.button("Sync Live Ingestion Stream"):
+    with st.spinner("Fetching Islamabad live weather stream..."):
+        try:
+            from pipelines.feature_pipeline import run_feature_pipeline
+            run_feature_pipeline()
+            st.sidebar.success("Stream synchronized!")
+            st.cache_data.clear()
+        except Exception as e:
+            st.sidebar.error(f"Sync failed: {e}")
+
+# Define Theme Variables
+if is_dark:
+    bg_color = "#0B0F19"
+    card_bg = "rgba(22, 30, 49, 0.65)"
+    border_color = "rgba(255, 255, 255, 0.08)"
+    text_color = "#F8FAFC"
+    muted_text = "#94A3B8"
+    plotly_bg = "#0F172A"
+    grid_color = "rgba(255, 255, 255, 0.05)"
+    shadow = "0 12px 30px rgba(0, 0, 0, 0.3)"
+else:
+    bg_color = "#F8FAFC"
+    card_bg = "#FFFFFF"
+    border_color = "rgba(0, 0, 0, 0.08)"
+    text_color = "#0F172A"
+    muted_text = "#475569"
+    plotly_bg = "#FFFFFF"
+    grid_color = "rgba(0, 0, 0, 0.06)"
+    shadow = "0 12px 30px rgba(0, 0, 0, 0.05)"
+
+# Apply Dynamic CSS Based on Selected Theme Mode
+st.markdown(f"""
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-    /* Global Container Reset */
-    html, body, [class*="css"] {
+    html, body, [class*="css"] {{
         font-family: 'Plus Jakarta Sans', sans-serif;
-    }
+    }}
     
-    .stApp {
-        background: radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
-                    radial-gradient(circle at 85% 85%, rgba(168, 85, 247, 0.08) 0%, transparent 40%),
-                    #0B0F19;
-    }
+    .stApp {{
+        background-color: {bg_color};
+        color: {text_color};
+    }}
     
-    /* Header Styling */
-    .hero-container {
-        background: rgba(22, 30, 49, 0.6);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+    .hero-container {{
+        background: {card_bg};
+        border: 1px solid {border_color};
         border-radius: 24px;
-        padding: 35px 40px;
+        padding: 30px 40px;
         margin-bottom: 25px;
-        backdrop-filter: blur(20px);
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
-    }
+        box-shadow: {shadow};
+    }}
     
-    .status-badge {
+    .status-badge {{
         display: inline-flex;
         align-items: center;
         gap: 8px;
@@ -62,129 +107,114 @@ st.markdown("""
         letter-spacing: 0.5px;
         text-transform: uppercase;
         margin-bottom: 12px;
-    }
+    }}
 
-    .pulse-dot {
+    .pulse-dot {{
         width: 8px;
         height: 8px;
         background-color: #10B981;
         border-radius: 50%;
         box-shadow: 0 0 10px #10B981;
-    }
+    }}
 
-    .main-title {
-        font-size: 3rem;
+    .main-title {{
+        font-size: 2.8rem;
         font-weight: 800;
-        background: linear-gradient(135deg, #38BDF8 0%, #818CF8 50%, #C084FC 100%);
+        background: linear-gradient(135deg, #0284C7 0%, #6366F1 50%, #9333EA 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin: 0 0 10px 0;
+        margin: 0 0 8px 0;
         letter-spacing: -1px;
-    }
+    }}
     
-    .subtitle {
+    .subtitle {{
         font-size: 1.05rem;
-        color: #94A3B8;
+        color: {muted_text};
         margin: 0;
         line-height: 1.6;
-    }
+    }}
 
-    /* Metric Glassmorphic Cards */
-    .metric-grid-card {
-        background: rgba(22, 30, 49, 0.65);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+    .metric-grid-card {{
+        background: {card_bg};
+        border: 1px solid {border_color};
         border-radius: 20px;
         padding: 24px;
         text-align: center;
-        backdrop-filter: blur(16px);
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
-    }
+        box-shadow: {shadow};
+        transition: all 0.3s ease;
+    }}
 
-    .metric-grid-card:hover {
-        transform: translateY(-6px);
-        border-color: rgba(56, 189, 248, 0.4);
-        box-shadow: 0 20px 40px rgba(56, 189, 248, 0.15);
-    }
+    .metric-grid-card:hover {{
+        transform: translateY(-5px);
+        border-color: #0284C7;
+    }}
 
-    .card-label {
+    .card-label {{
         font-size: 0.85rem;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 1.2px;
-        color: #94A3B8;
+        color: {muted_text};
         margin-bottom: 8px;
-    }
+    }}
 
-    .card-value {
+    .card-value {{
         font-size: 2.6rem;
         font-weight: 800;
         line-height: 1;
         margin: 10px 0;
-    }
+    }}
 
-    .card-tag {
+    .card-tag {{
         display: inline-block;
         font-size: 0.85rem;
         font-weight: 700;
         padding: 4px 12px;
         border-radius: 10px;
         margin-top: 6px;
-    }
+    }}
 
-    /* EPA Advisory Card */
-    .epa-advisory-card {
-        background: rgba(22, 30, 49, 0.6);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+    .epa-advisory-card {{
+        background: {card_bg};
+        border: 1px solid {border_color};
         border-left-width: 6px;
         border-radius: 18px;
         padding: 24px;
         margin: 25px 0;
-        backdrop-filter: blur(16px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    }
+        box-shadow: {shadow};
+    }}
 
-    .epa-title {
+    .epa-title {{
         font-size: 1.2rem;
         font-weight: 700;
         margin-bottom: 8px;
         display: flex;
         align-items: center;
         gap: 10px;
-    }
+    }}
 
-    .epa-desc {
-        color: #CBD5E1;
+    .epa-desc {{
+        color: {text_color};
         font-size: 0.98rem;
         line-height: 1.6;
         margin: 0;
-    }
+    }}
 
-    /* Sidebar Customization */
-    [data-testid="stSidebar"] {
-        background-color: #07090E;
-        border-right: 1px solid rgba(255, 255, 255, 0.06);
-    }
+    [data-testid="stSidebar"] {{
+        background-color: {"#07090E" if is_dark else "#F1F5F9"};
+        border-right: 1px solid {border_color};
+    }}
 
-    .stButton>button {
+    .stButton>button {{
         width: 100%;
-        background: linear-gradient(135deg, #38BDF8, #818CF8);
+        background: linear-gradient(135deg, #0284C7, #6366F1);
         color: #FFFFFF;
         border: none;
         border-radius: 12px;
         padding: 12px;
         font-weight: 700;
         font-size: 0.95rem;
-        transition: all 0.2s;
-        box-shadow: 0 4px 15px rgba(56, 189, 248, 0.25);
-    }
-
-    .stButton>button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(56, 189, 248, 0.4);
-    }
+    }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -194,13 +224,13 @@ def get_risk_badge(aqi_val: float):
     if val <= 50:
         return "Good", "🟢", "#22C55E", "Air quality is satisfactory. Enjoy outdoor physical activities!"
     elif val <= 100:
-        return "Moderate", "🟡", "#EAB308", "Air quality is acceptable. Unusually sensitive individuals should monitor exertion."
+        return "Moderate", "🟡", "#D97706" if not is_dark else "#EAB308", "Air quality is acceptable. Unusually sensitive individuals should monitor exertion."
     elif val <= 150:
-        return "Unhealthy for Sensitive Groups", "🟠", "#F97316", "Members of sensitive groups (children, elderly) should reduce prolonged outdoor exertion."
+        return "Unhealthy for Sensitive Groups", "🟠", "#EA580C" if not is_dark else "#F97316", "Members of sensitive groups (children, elderly) should reduce prolonged outdoor exertion."
     elif val <= 200:
-        return "Unhealthy", "🔴", "#EF4444", "Everyone may experience health effects. Wear N95 masks outdoors, keep windows closed, and run indoor air purifiers."
+        return "Unhealthy", "🔴", "#DC2626" if not is_dark else "#EF4444", "Everyone may experience health effects. Wear N95 masks outdoors, keep windows closed, and run indoor air purifiers."
     elif val <= 300:
-        return "Very Unhealthy", "🟣", "#A855F7", "Health alert: risk of health effects for everyone. Avoid outdoor physical activity and remain indoors."
+        return "Very Unhealthy", "🟣", "#9333EA" if not is_dark else "#A855F7", "Health alert: risk of health effects for everyone. Avoid outdoor physical activity and remain indoors."
     else:
         return "Hazardous", "🟤", "#881337", "Health warning of emergency conditions! Avoid all physical activity outdoors and run indoor HEPA air purifiers."
 
@@ -249,35 +279,19 @@ def load_model_artifacts():
 
     return rf_model, ridge_model, tf_model, scaler, feature_names
 
-# Sidebar Controls
-st.sidebar.markdown("## ⚙️ Control Panel")
-st.sidebar.markdown("Target Region: **Islamabad, Pakistan**")
-
-selected_model_name = st.sidebar.selectbox(
-    "Active Forecasting Engine:",
-    ["Ridge Regression (Statistical)", "Random Forest Regressor", "TensorFlow Deep Learning"]
-)
-
-st.sidebar.markdown("---")
-st.sidebar.markdown("### 🔄 Serverless ETL")
-if st.sidebar.button("Sync Live Ingestion Stream"):
-    with st.spinner("Fetching Islamabad live weather stream..."):
-        try:
-            from pipelines.feature_pipeline import run_feature_pipeline
-            run_feature_pipeline()
-            st.sidebar.success("Stream synchronized!")
-            st.cache_data.clear()
-        except Exception as e:
-            st.sidebar.error(f"Sync failed: {e}")
-
-# Main Hero Header
-st.markdown("""
+# Main Hero Header with Theme Banner Icon
+st.markdown(f"""
 <div class="hero-container">
-    <div class="status-badge">
-        <span class="pulse-dot"></span> Serverless MLOps Pipeline Live
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="status-badge">
+            <span class="pulse-dot"></span> Live MLOps Stream
+        </div>
+        <div style="font-size: 1.4rem;">
+            {"🌙" if is_dark else "☀️"}
+        </div>
     </div>
     <div class="main-title">Islamabad AQI Predictor</div>
-    <div class="subtitle">Real-time air quality monitoring, 72-hour multi-step ML forecasting, and SHAP explainability.</div>
+    <div class="subtitle">Real-time air quality forecasting engine & 3-day multi-step predictions.</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -360,7 +374,7 @@ with col2:
     st.markdown(f"""
     <div class="metric-grid-card">
         <div class="card-label">24-Hour Forecast</div>
-        <div class="card-value" style="color: #38BDF8;">{int(preds_24h)}</div>
+        <div class="card-value" style="color: #0284C7;">{int(preds_24h)}</div>
         <div class="card-tag" style="background: {col_24}20; color: {col_24};">{chg_24:+.1f} Shift</div>
     </div>
     """, unsafe_allow_html=True)
@@ -371,7 +385,7 @@ with col3:
     st.markdown(f"""
     <div class="metric-grid-card">
         <div class="card-label">48-Hour Forecast</div>
-        <div class="card-value" style="color: #818CF8;">{int(preds_48h)}</div>
+        <div class="card-value" style="color: #6366F1;">{int(preds_48h)}</div>
         <div class="card-tag" style="background: {col_48}20; color: {col_48};">{chg_48:+.1f} Shift</div>
     </div>
     """, unsafe_allow_html=True)
@@ -382,7 +396,7 @@ with col4:
     st.markdown(f"""
     <div class="metric-grid-card">
         <div class="card-label">72-Hour Forecast</div>
-        <div class="card-value" style="color: #C084FC;">{int(preds_72h)}</div>
+        <div class="card-value" style="color: #9333EA;">{int(preds_72h)}</div>
         <div class="card-tag" style="background: {col_72}20; color: {col_72};">{chg_72:+.1f} Shift</div>
     </div>
     """, unsafe_allow_html=True)
@@ -414,16 +428,16 @@ future_values = [preds_24h, preds_48h, preds_72h]
 
 fig = go.Figure()
 
-# Historical Line with Area Fill
+# Historical Line
 fig.add_trace(go.Scatter(
     x=hist_times,
     y=hist_values,
     name="Historical Observed AQI",
     fill='tozeroy',
-    fillcolor='rgba(56, 189, 248, 0.08)',
-    line=dict(color="#38BDF8", width=3),
+    fillcolor='rgba(2, 132, 199, 0.1)',
+    line=dict(color="#0284C7", width=3),
     mode="lines+markers",
-    marker=dict(size=6, color="#38BDF8")
+    marker=dict(size=6, color="#0284C7")
 ))
 
 # Forecast Line
@@ -431,18 +445,18 @@ fig.add_trace(go.Scatter(
     x=[last_time] + future_times,
     y=[current_aqi] + future_values,
     name="Projected ML Forecast",
-    line=dict(color="#C084FC", width=3.5, dash="dash"),
+    line=dict(color="#9333EA", width=3.5, dash="dash"),
     mode="lines+markers",
-    marker=dict(size=8, color="#C084FC")
+    marker=dict(size=8, color="#9333EA")
 ))
 
 fig.update_layout(
-    plot_bgcolor="#0F172A",
-    paper_bgcolor="#0F172A",
-    font_color="#E2E8F0",
+    plot_bgcolor=plotly_bg,
+    paper_bgcolor=plotly_bg,
+    font_color=text_color,
     margin=dict(l=20, r=20, t=20, b=20),
-    xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.05)"),
-    yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.05)", title="Air Quality Index (AQI)"),
+    xaxis=dict(showgrid=True, gridcolor=grid_color),
+    yaxis=dict(showgrid=True, gridcolor=grid_color, title="Air Quality Index (AQI)"),
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
 )
 
@@ -472,17 +486,17 @@ if rf_model is not None:
             y="Feature",
             orientation="h",
             color="Impact",
-            color_continuous_scale="Viridis",
+            color_continuous_scale="Purples" if is_dark else "Blues",
             labels={"Impact": "Absolute Influence Score"}
         )
 
         fig_shap.update_layout(
-            plot_bgcolor="#0F172A",
-            paper_bgcolor="#0F172A",
-            font_color="#E2E8F0",
+            plot_bgcolor=plotly_bg,
+            paper_bgcolor=plotly_bg,
+            font_color=text_color,
             margin=dict(l=20, r=20, t=20, b=20),
             coloraxis_showscale=False,
-            xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.05)"),
+            xaxis=dict(showgrid=True, gridcolor=grid_color),
             yaxis=dict(showgrid=False)
         )
 
@@ -505,7 +519,7 @@ if rf_model is not None:
             }).sort_values(by="Importance", ascending=True)
 
             fig_imp = px.bar(imp_df, x="Importance", y="Feature", orientation="h", color="Importance")
-            fig_imp.update_layout(plot_bgcolor="#0F172A", paper_bgcolor="#0F172A", font_color="#E2E8F0")
+            fig_imp.update_layout(plot_bgcolor=plotly_bg, paper_bgcolor=plotly_bg, font_color=text_color)
             st.plotly_chart(fig_imp, use_container_width=True)
 else:
     st.info("Train your model to display interactive feature explainability features.")
