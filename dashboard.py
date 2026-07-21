@@ -16,74 +16,179 @@ from pipelines.feature_store import get_feature_store
 
 # Page Configuration
 st.set_page_config(
-    page_title="Islamabad AQI Predictor",
+    page_title="Islamabad AQI Predictor | MLOps Platform",
     page_icon="🌤️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom Styling (Dark Glassmorphism UI Theme)
+# Premium Custom CSS (Dark Glassmorphism & Cyberpunk Neon Accents)
 st.markdown("""
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-    body {
-        background-color: #0F172A;
-        color: #E2E8F0;
+    /* Global Container Reset */
+    html, body, [class*="css"] {
+        font-family: 'Plus Jakarta Sans', sans-serif;
     }
+    
+    .stApp {
+        background: radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
+                    radial-gradient(circle at 85% 85%, rgba(168, 85, 247, 0.08) 0%, transparent 40%),
+                    #0B0F19;
+    }
+    
+    /* Header Styling */
+    .hero-container {
+        background: rgba(22, 30, 49, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 24px;
+        padding: 35px 40px;
+        margin-bottom: 25px;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    }
+    
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(16, 185, 129, 0.12);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        color: #10B981;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+    }
+
+    .pulse-dot {
+        width: 8px;
+        height: 8px;
+        background-color: #10B981;
+        border-radius: 50%;
+        box-shadow: 0 0 10px #10B981;
+    }
+
     .main-title {
-        font-size: 2.8rem;
+        font-size: 3rem;
         font-weight: 800;
-        background: linear-gradient(90deg, #38BDF8, #818CF8);
+        background: linear-gradient(135deg, #38BDF8 0%, #818CF8 50%, #C084FC 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-bottom: 0.2rem;
+        margin: 0 0 10px 0;
+        letter-spacing: -1px;
     }
+    
     .subtitle {
-        font-size: 1.1rem;
+        font-size: 1.05rem;
         color: #94A3B8;
-        margin-bottom: 2rem;
+        margin: 0;
+        line-height: 1.6;
     }
-    .metric-card {
-        background: rgba(30, 41, 59, 0.7);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
-        padding: 20px;
+
+    /* Metric Glassmorphic Cards */
+    .metric-grid-card {
+        background: rgba(22, 30, 49, 0.65);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
+        padding: 24px;
         text-align: center;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
-        backdrop-filter: blur(10px);
-        transition: transform 0.2s ease-in-out;
+        backdrop-filter: blur(16px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
     }
-    .metric-card:hover {
-        transform: translateY(-5px);
+
+    .metric-grid-card:hover {
+        transform: translateY(-6px);
+        border-color: rgba(56, 189, 248, 0.4);
+        box-shadow: 0 20px 40px rgba(56, 189, 248, 0.15);
     }
-    .metric-value {
-        font-size: 2.2rem;
+
+    .card-label {
+        font-size: 0.85rem;
         font-weight: 700;
-        margin-top: 5px;
-    }
-    .metric-label {
-        font-size: 0.9rem;
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 1.2px;
         color: #94A3B8;
+        margin-bottom: 8px;
     }
-    .metric-delta {
-        font-size: 0.9rem;
-        margin-top: 8px;
-        font-weight: 600;
+
+    .card-value {
+        font-size: 2.6rem;
+        font-weight: 800;
+        line-height: 1;
+        margin: 10px 0;
     }
-    .advisory-card {
-        background: rgba(30, 41, 59, 0.7);
-        border-left: 5px solid #38BDF8;
+
+    .card-tag {
+        display: inline-block;
+        font-size: 0.85rem;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 10px;
+        margin-top: 6px;
+    }
+
+    /* EPA Advisory Card */
+    .epa-advisory-card {
+        background: rgba(22, 30, 49, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-left-width: 6px;
+        border-radius: 18px;
+        padding: 24px;
+        margin: 25px 0;
+        backdrop-filter: blur(16px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .epa-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .epa-desc {
+        color: #CBD5E1;
+        font-size: 0.98rem;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    /* Sidebar Customization */
+    [data-testid="stSidebar"] {
+        background-color: #07090E;
+        border-right: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .stButton>button {
+        width: 100%;
+        background: linear-gradient(135deg, #38BDF8, #818CF8);
+        color: #FFFFFF;
+        border: none;
         border-radius: 12px;
-        padding: 20px;
-        margin: 20px 0;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        backdrop-filter: blur(10px);
+        padding: 12px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+        box-shadow: 0 4px 15px rgba(56, 189, 248, 0.25);
+    }
+
+    .stButton>button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(56, 189, 248, 0.4);
     }
 </style>
 """, unsafe_allow_html=True)
 
-# Helper Functions - Official EPA Categorization & Action Guidelines
+# Official EPA Categorization & Action Guidelines
 def get_risk_badge(aqi_val: float):
     val = round(aqi_val)
     if val <= 50:
@@ -91,7 +196,7 @@ def get_risk_badge(aqi_val: float):
     elif val <= 100:
         return "Moderate", "🟡", "#EAB308", "Air quality is acceptable. Unusually sensitive individuals should monitor exertion."
     elif val <= 150:
-        return "Unhealthy for Sensitive Groups", "🟠", "#F97316", "Members of sensitive groups (asthma, children, elderly) should reduce prolonged outdoor exertion."
+        return "Unhealthy for Sensitive Groups", "🟠", "#F97316", "Members of sensitive groups (children, elderly) should reduce prolonged outdoor exertion."
     elif val <= 200:
         return "Unhealthy", "🔴", "#EF4444", "Everyone may experience health effects. Wear N95 masks outdoors, keep windows closed, and run indoor air purifiers."
     elif val <= 300:
@@ -145,34 +250,43 @@ def load_model_artifacts():
     return rf_model, ridge_model, tf_model, scaler, feature_names
 
 # Sidebar Controls
-st.sidebar.markdown("## ⚙️ Settings Panel")
-st.sidebar.markdown("Configured for **Islamabad** serverless pipelines.")
+st.sidebar.markdown("## ⚙️ Control Panel")
+st.sidebar.markdown("Target Region: **Islamabad, Pakistan**")
 
 selected_model_name = st.sidebar.selectbox(
-    "Select Forecasting Engine:",
+    "Active Forecasting Engine:",
     ["Ridge Regression (Statistical)", "Random Forest Regressor", "TensorFlow Deep Learning"]
 )
 
-if st.sidebar.button("🔄 Trigger Live Feature Ingestion"):
-    with st.spinner("Executing serverless Islamabad real-time stream..."):
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 🔄 Serverless ETL")
+if st.sidebar.button("Sync Live Ingestion Stream"):
+    with st.spinner("Fetching Islamabad live weather stream..."):
         try:
             from pipelines.feature_pipeline import run_feature_pipeline
             run_feature_pipeline()
-            st.sidebar.success("New feature data successfully synced!")
+            st.sidebar.success("Stream synchronized!")
             st.cache_data.clear()
         except Exception as e:
-            st.sidebar.error(f"Execution failed: {e}")
+            st.sidebar.error(f"Sync failed: {e}")
 
-# Header Layout
-st.markdown('<div class="main-title">🌤️ Islamabad AQI Predictor Dashboard</div>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle">Enterprise MLOps forecasting application with EPA standards & SHAP explainers</div>', unsafe_allow_html=True)
+# Main Hero Header
+st.markdown("""
+<div class="hero-container">
+    <div class="status-badge">
+        <span class="pulse-dot"></span> Serverless MLOps Pipeline Live
+    </div>
+    <div class="main-title">Islamabad AQI Predictor</div>
+    <div class="subtitle">Real-time air quality monitoring, 72-hour multi-step ML forecasting, and SHAP explainability.</div>
+</div>
+""", unsafe_allow_html=True)
 
 # Load Data & Models
 df = load_feature_store_data()
 rf_model, ridge_model, tf_model, scaler, feature_names = load_model_artifacts()
 
 if df.empty:
-    st.warning("⚠️ Feature Store database not populated. Please run backfill script.")
+    st.warning("⚠️ Feature Store is empty. Please run backfill script.")
     st.stop()
 
 # Get latest Islamabad record
@@ -228,65 +342,63 @@ if max_val > 150:
 elif max_val > 100:
     st.warning(f"⚠️ **Moderate / Sensitive Groups Advisory**: Forecasted AQI peaks at {int(max_val)} (Unhealthy for Sensitive Groups). Sensitive individuals should reduce outdoor exertion.")
 
-# Interactive Metrics Grid (Custom Glassmorphism HTML cards)
+# Metric Grid Cards
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-label">Current AQI</div>
-        <div class="metric-value" style="color: {risk_color};">{int(current_aqi)}</div>
-        <div class="metric-delta" style="color: {risk_color};">{risk_emoji} {risk_label}</div>
+    <div class="metric-grid-card">
+        <div class="card-label">Current AQI</div>
+        <div class="card-value" style="color: {risk_color};">{int(current_aqi)}</div>
+        <div class="card-tag" style="background: {risk_color}20; color: {risk_color};">{risk_emoji} {risk_label}</div>
     </div>
     """, unsafe_allow_html=True)
 
 with col2:
     chg_24 = preds_24h - current_aqi
-    col_24 = "#22C55E" if chg_24 <= 0 else "#EF4444"
+    col_24 = "#10B981" if chg_24 <= 0 else "#EF4444"
     st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-label">24-Hour Forecast</div>
-        <div class="metric-value" style="color: #38BDF8;">{int(preds_24h)}</div>
-        <div class="metric-delta" style="color: {col_24};">{chg_24:+.1f} change</div>
+    <div class="metric-grid-card">
+        <div class="card-label">24-Hour Forecast</div>
+        <div class="card-value" style="color: #38BDF8;">{int(preds_24h)}</div>
+        <div class="card-tag" style="background: {col_24}20; color: {col_24};">{chg_24:+.1f} Shift</div>
     </div>
     """, unsafe_allow_html=True)
 
 with col3:
     chg_48 = preds_48h - current_aqi
-    col_48 = "#22C55E" if chg_48 <= 0 else "#EF4444"
+    col_48 = "#10B981" if chg_48 <= 0 else "#EF4444"
     st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-label">48-Hour Forecast</div>
-        <div class="metric-value" style="color: #38BDF8;">{int(preds_48h)}</div>
-        <div class="metric-delta" style="color: {col_48};">{chg_48:+.1f} change</div>
+    <div class="metric-grid-card">
+        <div class="card-label">48-Hour Forecast</div>
+        <div class="card-value" style="color: #818CF8;">{int(preds_48h)}</div>
+        <div class="card-tag" style="background: {col_48}20; color: {col_48};">{chg_48:+.1f} Shift</div>
     </div>
     """, unsafe_allow_html=True)
 
 with col4:
     chg_72 = preds_72h - current_aqi
-    col_72 = "#22C55E" if chg_72 <= 0 else "#EF4444"
+    col_72 = "#10B981" if chg_72 <= 0 else "#EF4444"
     st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-label">72-Hour Forecast</div>
-        <div class="metric-value" style="color: #38BDF8;">{int(preds_72h)}</div>
-        <div class="metric-delta" style="color: {col_72};">{chg_72:+.1f} change</div>
+    <div class="metric-grid-card">
+        <div class="card-label">72-Hour Forecast</div>
+        <div class="card-value" style="color: #C084FC;">{int(preds_72h)}</div>
+        <div class="card-tag" style="background: {col_72}20; color: {col_72};">{chg_72:+.1f} Shift</div>
     </div>
     """, unsafe_allow_html=True)
 
-# Dynamic Actionable EPA Health Advisory Card
+# Official EPA Action Guidelines Card
 st.markdown(f"""
-<div class="advisory-card" style="border-left-color: {risk_color};">
-    <h3 style="margin: 0 0 8px 0; font-size: 1.15rem; color: {risk_color};">
-        {risk_emoji} Official EPA Health Action Guidelines ({risk_label})
-    </h3>
-    <p style="margin: 0; color: #E2E8F0; font-size: 0.95rem; line-height: 1.5;">
-        {health_advice}
-    </p>
+<div class="epa-advisory-card" style="border-left-color: {risk_color};">
+    <div class="epa-title" style="color: {risk_color};">
+        <span>{risk_emoji}</span> Official EPA Action Guidelines ({risk_label})
+    </div>
+    <p class="epa-desc">{health_advice}</p>
 </div>
 """, unsafe_allow_html=True)
 
 # Plotly Interactive Trend Graph
-st.subheader("📈 Interactive AQI Historical & Forecast Trend")
+st.markdown("### 📈 Historical AQI & 3-Day Forecast Trend")
 
 hist_data = islamabad_df.tail(48).copy()
 hist_times = hist_data['timestamp'].tolist()
@@ -302,20 +414,26 @@ future_values = [preds_24h, preds_48h, preds_72h]
 
 fig = go.Figure()
 
+# Historical Line with Area Fill
 fig.add_trace(go.Scatter(
     x=hist_times,
     y=hist_values,
-    name="Historical AQI",
-    line=dict(color="#38BDF8", width=3.5),
-    mode="lines+markers"
+    name="Historical Observed AQI",
+    fill='tozeroy',
+    fillcolor='rgba(56, 189, 248, 0.08)',
+    line=dict(color="#38BDF8", width=3),
+    mode="lines+markers",
+    marker=dict(size=6, color="#38BDF8")
 ))
 
+# Forecast Line
 fig.add_trace(go.Scatter(
     x=[last_time] + future_times,
     y=[current_aqi] + future_values,
-    name="Projected Forecast",
-    line=dict(color="#F59E0B", width=3.5, dash="dash"),
-    mode="lines+markers"
+    name="Projected ML Forecast",
+    line=dict(color="#C084FC", width=3.5, dash="dash"),
+    mode="lines+markers",
+    marker=dict(size=8, color="#C084FC")
 ))
 
 fig.update_layout(
@@ -324,7 +442,7 @@ fig.update_layout(
     font_color="#E2E8F0",
     margin=dict(l=20, r=20, t=20, b=20),
     xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.05)"),
-    yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.05)", title="AQI Index"),
+    yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.05)", title="Air Quality Index (AQI)"),
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
 )
 
@@ -332,8 +450,8 @@ st.plotly_chart(fig, use_container_width=True)
 
 st.divider()
 
-# Interactive Plotly SHAP Feature Importance
-st.subheader("🧠 SHAP Feature Importance Interpretability")
+# SHAP Feature Importance Section
+st.markdown("### 🧠 SHAP Feature Importance Interpretability")
 
 if rf_model is not None:
     try:
@@ -354,7 +472,7 @@ if rf_model is not None:
             y="Feature",
             orientation="h",
             color="Impact",
-            color_continuous_scale="Purples",
+            color_continuous_scale="Viridis",
             labels={"Impact": "Absolute Influence Score"}
         )
 
@@ -372,9 +490,9 @@ if rf_model is not None:
         with col_l:
             st.plotly_chart(fig_shap, use_container_width=True)
         with col_r:
-            st.markdown("#### Impact Rankings")
+            st.markdown("#### Feature Rank Table")
             st.dataframe(
-                shap_df.sort_values(by="Impact", ascending=False).style.background_gradient(cmap="Purples"),
+                shap_df.sort_values(by="Impact", ascending=False).style.background_gradient(cmap="Blues"),
                 use_container_width=True
             )
 
@@ -393,4 +511,4 @@ else:
     st.info("Train your model to display interactive feature explainability features.")
 
 st.markdown("<br><hr>", unsafe_allow_html=True)
-st.caption("Pearls AQI Predictor App | Islamabad MLOps serving system")
+st.caption("Pearls AQI Predictor | 10Pearls Internship Project | Islamabad Serverless MLOps System")
