@@ -81,26 +81,201 @@ load_artifacts()
 def home():
     """Default landing route helper."""
     return """
-    <html>
+    <!DOCTYPE html>
+    <html lang="en">
         <head>
-            <title>Pearls AQI Predictor API</title>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Pearls AQI Predictor REST API</title>
+            <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
             <style>
-                body { font-family: sans-serif; margin: 40px; background: #0F172A; color: #E2E8F0; }
-                h1 { color: #38BDF8; }
-                a { color: #F59E0B; text-decoration: none; font-weight: bold; }
-                a:hover { text-decoration: underline; }
-                .card { background: #1E293B; padding: 20px; border-radius: 8px; margin-top: 20px; }
+                :root {
+                    --bg: #0B0F19;
+                    --panel: rgba(22, 30, 49, 0.7);
+                    --border: rgba(255, 255, 255, 0.08);
+                    --text: #F8FAFC;
+                    --text-muted: #94A3B8;
+                    --accent-blue: #38BDF8;
+                    --accent-purple: #818CF8;
+                    --accent-orange: #F59E0B;
+                    --green: #10B981;
+                }
+                body {
+                    font-family: 'Plus Jakarta Sans', sans-serif;
+                    background-color: var(--bg);
+                    color: var(--text);
+                    margin: 0;
+                    padding: 0;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: 100vh;
+                    box-sizing: border-box;
+                }
+                .container {
+                    width: 100%;
+                    max-width: 800px;
+                    padding: 40px 20px;
+                }
+                .header {
+                    text-align: center;
+                    margin-bottom: 40px;
+                }
+                .badge {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    background: rgba(16, 185, 129, 0.1);
+                    color: var(--green);
+                    border: 1px solid rgba(16, 185, 129, 0.2);
+                    padding: 6px 16px;
+                    border-radius: 99px;
+                    font-size: 0.85rem;
+                    font-weight: 600;
+                    margin-bottom: 16px;
+                }
+                .badge-dot {
+                    width: 8px;
+                    height: 8px;
+                    background: var(--green);
+                    border-radius: 50%;
+                    box-shadow: 0 0 10px var(--green);
+                }
+                h1 {
+                    font-size: 2.5rem;
+                    font-weight: 800;
+                    margin: 0 0 10px 0;
+                    background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+                .subtitle {
+                    color: var(--text-muted);
+                    font-size: 1.1rem;
+                    margin: 0;
+                }
+                .card {
+                    background: var(--panel);
+                    border: 1px solid var(--border);
+                    border-radius: 20px;
+                    padding: 30px;
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+                    backdrop-filter: blur(16px);
+                    margin-bottom: 24px;
+                }
+                h3 {
+                    margin-top: 0;
+                    font-size: 1.25rem;
+                    font-weight: 600;
+                    border-bottom: 1px solid var(--border);
+                    padding-bottom: 12px;
+                    margin-bottom: 20px;
+                    color: var(--accent-blue);
+                }
+                ul {
+                    list-style: none;
+                    padding: 0;
+                    margin: 0;
+                }
+                li {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 16px 0;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+                }
+                li:last-child {
+                    border-bottom: none;
+                }
+                .endpoint-info {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                }
+                .endpoint-title {
+                    font-weight: 600;
+                    font-size: 1rem;
+                }
+                .endpoint-desc {
+                    font-size: 0.85rem;
+                    color: var(--text-muted);
+                }
+                .btn {
+                    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+                    color: var(--text);
+                    text-decoration: none;
+                    padding: 10px 20px;
+                    border-radius: 12px;
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                    transition: transform 0.2s, box-shadow 0.2s;
+                    box-shadow: 0 4px 15px rgba(129, 140, 248, 0.2);
+                }
+                .btn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 20px rgba(129, 140, 248, 0.4);
+                }
+                .code-block {
+                    background: #07090E;
+                    border: 1px solid var(--border);
+                    border-radius: 12px;
+                    padding: 16px;
+                    font-family: monospace;
+                    font-size: 0.85rem;
+                    color: var(--accent-orange);
+                    overflow-x: auto;
+                    margin-top: 10px;
+                }
+                .footer {
+                    text-align: center;
+                    font-size: 0.8rem;
+                    color: var(--text-muted);
+                    margin-top: 40px;
+                }
             </style>
         </head>
         <body>
-            <h1>🌤️ Pearls AQI Predictor REST API</h1>
-            <p>Welcome! The server is running successfully.</p>
-            <div class="card">
-                <h3>Available Endpoints:</h3>
-                <ul>
-                    <li><strong>Health Check:</strong> <a href="/health">/health</a></li>
-                    <li><strong>Forecast Predictions:</strong> <a href="/predict">/predict</a></li>
-                </ul>
+            <div class="container">
+                <div class="header">
+                    <div class="badge">
+                        <span class="badge-dot"></span>
+                        Service Online
+                    </div>
+                    <h1>Pearls AQI REST API Gateway</h1>
+                    <p class="subtitle">Islamabad AQI 3-Day ML Forecasting Service</p>
+                </div>
+                
+                <div class="card">
+                    <h3>⚡ Available Endpoints</h3>
+                    <ul>
+                        <li>
+                            <div class="endpoint-info">
+                                <span class="endpoint-title">Health Check</span>
+                                <span class="endpoint-desc">Verify server status and active loaded models.</span>
+                            </div>
+                            <a href="/health" class="btn">Query /health</a>
+                        </li>
+                        <li>
+                            <div class="endpoint-info">
+                                <span class="endpoint-title">Get 3-Day AQI Forecast</span>
+                                <span class="endpoint-desc">Retrieves the latest prediction dataset.</span>
+                            </div>
+                            <a href="/predict" class="btn">Query /predict</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>📖 API Usage Quickstart</h3>
+                    <p class="endpoint-desc">Send a standard HTTP GET request to forecast the 3-day AQI. Defaults to Islamabad weather parameters.</p>
+                    <div class="code-block">
+                        curl -X GET http://localhost:5000/predict?city=Islamabad
+                    </div>
+                </div>
+
+                <div class="footer">
+                    Pearls AQI Predictor &copy; 2026 | Serverless MLOps Platform
+                </div>
             </div>
         </body>
     </html>
