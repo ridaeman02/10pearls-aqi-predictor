@@ -202,6 +202,13 @@ elif rf_model is not None:
     except Exception:
         pass
 
+# Hazardous AQI Alert Banners
+max_val = max(current_aqi, preds_24h, preds_48h, preds_72h)
+if max_val > 150:
+    st.error(f"🚨 **Hazardous / Unhealthy AQI Alert**: The AQI is forecasted to reach {int(max_val)} (Unhealthy). Minimize prolonged outdoor activities, keep windows closed, and use air purifiers.")
+elif max_val > 100:
+    st.warning(f"⚠️ **Moderate / Sensitive Groups AQI Advisory**: The AQI is forecasted to reach {int(max_val)} (Unhealthy for Sensitive Groups). Sensitive individuals should take precautions.")
+
 # Interactive Metrics Grid (Custom Glassmorphism HTML cards)
 col1, col2, col3, col4 = st.columns(4)
 
