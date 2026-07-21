@@ -8,7 +8,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-import tensorflow as tf
 
 # Ensure root directory is in sys.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -76,24 +75,29 @@ def train_and_save_models():
     rf_preds = rf_model.predict(X_test_scaled)
     rf_mae = mean_absolute_error(y_test, rf_preds)
     rf_r2 = r2_score(y_test, rf_preds)
-    print(f"✓ Scikit-learn RF Model - MAE: {rf_mae:.2f}, R2: {rf_r2:.2f}")
+    print(f"[SUCCESS] Scikit-learn RF Model - MAE: {rf_mae:.2f}, R2: {rf_r2:.2f}")
 
     # 2. Train TensorFlow Deep Learning Model
-    print("Training TensorFlow Multi-Output Neural Network model...")
-    tf_model = tf.keras.Sequential([
-        tf.keras.layers.Dense(64, activation='relu', input_shape=(X_train_scaled.shape[1],)),
-        tf.keras.layers.BatchNormalization(),
-        tf.keras.layers.Dropout(0.2),
-        tf.keras.layers.Dense(32, activation='relu'),
-        tf.keras.layers.Dense(3)  # Output: 24h, 48h, 72h forecasts
-    ])
+    tf_model = None
+    try:
+        import tensorflow as tf
+        print("Training TensorFlow Multi-Output Neural Network model...")
+        tf_model = tf.keras.Sequential([
+            tf.keras.layers.Dense(64, activation='relu', input_shape=(X_train_scaled.shape[1],)),
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.Dropout(0.2),
+            tf.keras.layers.Dense(32, activation='relu'),
+            tf.keras.layers.Dense(3)  # Output: 24h, 48h, 72h forecasts
+        ])
 
-    tf_model.compile(optimizer='adam', loss='mse', metrics=['mae'])
-    tf_model.fit(X_train_scaled, y_train, epochs=30, batch_size=16, verbose=0)
+        tf_model.compile(optimizer='adam', loss='mse', metrics=['mae'])
+        tf_model.fit(X_train_scaled, y_train, epochs=30, batch_size=16, verbose=0)
 
-    tf_preds = tf_model.predict(X_test_scaled, verbose=0)
-    tf_mae = mean_absolute_error(y_test, tf_preds)
-    print(f"✓ TensorFlow Model - MAE: {tf_mae:.2f}")
+        tf_preds = tf_model.predict(X_test_scaled, verbose=0)
+        tf_mae = mean_absolute_error(y_test, tf_preds)
+        print(f"[SUCCESS] TensorFlow Model - MAE: {tf_mae:.2f}")
+    except ImportError:
+        print("[WARNING] TensorFlow is not installed. Skipping deep learning model training.")
 
     # Save artifacts to models/ directory
     rf_path = os.path.join(MODELS_DIR, "rf_model.pkl")
@@ -104,7 +108,9 @@ def train_and_save_models():
     with open(rf_path, "wb") as f:
         pickle.dump(rf_model, f)
 
-    tf_model.save(tf_path)
+    if tf_model is not None:
+        tf_model.save(tf_path)
+        print(f"  - Saved: {tf_path}")
 
     with open(scaler_path, "wb") as f:
         pickle.dump(scaler, f)
