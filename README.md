@@ -1,7 +1,7 @@
 # 🌍 Islamabad AQI Predictor
 
-[![Feature Pipeline (Hourly)](https://github.com/ridaeman02/10pearls-aqi-predictor/actions/workflows/feature_pipeline.yml/badge.svg)](https://github.com/ridaeman02/10pearls-aqi-predictor/actions/workflows/feature_pipeline.yml)
-[![Training Pipeline (Daily)](https://github.com/ridaeman02/10pearls-aqi-predictor/actions/workflows/training_pipeline.yml/badge.svg)](https://github.com/ridaeman02/10pearls-aqi-predictor/actions/workflows/training_pipeline.yml)
+[![Hourly Feature Pipeline](https://github.com/ridaeman02/10pearls-aqi-predictor/actions/workflows/hourly_feature_pipeline.yml/badge.svg)](https://github.com/ridaeman02/10pearls-aqi-predictor/actions/workflows/hourly_feature_pipeline.yml)
+[![Daily Model Training](https://github.com/ridaeman02/10pearls-aqi-predictor/actions/workflows/daily_training_pipeline.yml/badge.svg)](https://github.com/ridaeman02/10pearls-aqi-predictor/actions/workflows/daily_training_pipeline.yml)
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 

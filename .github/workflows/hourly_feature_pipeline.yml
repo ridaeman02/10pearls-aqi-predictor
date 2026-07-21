@@ -1,4 +1,4 @@
-name: Feature Ingestion Pipeline (Hourly)
+name: Hourly Feature Pipeline
 
 on:
   schedule:
