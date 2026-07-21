@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import Ridge
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
@@ -77,6 +78,16 @@ def train_and_save_models():
     rf_r2 = r2_score(y_test, rf_preds)
     print(f"[SUCCESS] Scikit-learn RF Model - MAE: {rf_mae:.2f}, R2: {rf_r2:.2f}")
 
+    # 2. Train Scikit-learn Ridge Regression Model (Statistical Baseline)
+    print("Training Scikit-learn Ridge Regression model...")
+    ridge_model = MultiOutputRegressor(Ridge(alpha=1.0))
+    ridge_model.fit(X_train_scaled, y_train)
+
+    ridge_preds = ridge_model.predict(X_test_scaled)
+    ridge_mae = mean_absolute_error(y_test, ridge_preds)
+    ridge_r2 = r2_score(y_test, ridge_preds)
+    print(f"[SUCCESS] Scikit-learn Ridge Model - MAE: {ridge_mae:.2f}, R2: {ridge_r2:.2f}")
+
     # 2. Train TensorFlow Deep Learning Model
     tf_model = None
     try:
@@ -101,12 +112,16 @@ def train_and_save_models():
 
     # Save artifacts to models/ directory
     rf_path = os.path.join(MODELS_DIR, "rf_model.pkl")
+    ridge_path = os.path.join(MODELS_DIR, "ridge_model.pkl")
     tf_path = os.path.join(MODELS_DIR, "tf_aqi_model.h5")
     scaler_path = os.path.join(MODELS_DIR, "scaler.pkl")
     features_path = os.path.join(MODELS_DIR, "feature_names.pkl")
 
     with open(rf_path, "wb") as f:
         pickle.dump(rf_model, f)
+
+    with open(ridge_path, "wb") as f:
+        pickle.dump(ridge_model, f)
 
     if tf_model is not None:
         tf_model.save(tf_path)
@@ -120,7 +135,7 @@ def train_and_save_models():
 
     print(f"[SUCCESS] All model artifacts successfully saved to '{MODELS_DIR}':")
     print(f"  - {rf_path}")
-    print(f"  - {tf_path}")
+    print(f"  - {ridge_path}")
     print(f"  - {scaler_path}")
     print(f"  - {features_path}")
 
