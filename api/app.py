@@ -4,7 +4,6 @@ import pickle
 import numpy as np
 import pandas as pd
 from flask import Flask, jsonify, request
-import tensorflow as tf
 
 # Ensure workspace root is in sys.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -70,8 +69,9 @@ def load_artifacts():
     # Load TensorFlow Model
     if os.path.exists(tf_path):
         try:
+            import tensorflow as tf
             tf_model = tf.keras.models.load_model(tf_path)
-        except Exception as e:
+        except (ImportError, Exception) as e:
             print(f"Warning: Could not load TensorFlow model: {e}")
 
 # Initial load on startup
