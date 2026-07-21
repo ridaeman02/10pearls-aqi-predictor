@@ -26,13 +26,9 @@ st.set_page_config(
 st.sidebar.markdown("## ⚙️ Settings Panel")
 st.sidebar.markdown("Target Region: **Islamabad, Pakistan**")
 
-# Sun / Moon Theme Switcher
-theme_mode = st.sidebar.radio(
-    "🎨 Display Theme Mode:",
-    ["🌙 Dark Mode", "☀️ Light Mode"],
-    index=0
-)
-is_dark = "Dark" in theme_mode
+# Single Sun/Moon Theme Toggle Switch
+is_light = st.sidebar.toggle("☀️ Light Mode", value=False)
+is_dark = not is_light
 
 selected_model_name = st.sidebar.selectbox(
     "Active Forecasting Engine:",
