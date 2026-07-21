@@ -116,15 +116,19 @@ def load_feature_store_data():
 def load_model_artifacts():
     models_dir = os.path.join(BASE_DIR, "models")
     rf_path = os.path.join(models_dir, "rf_model.pkl")
+    ridge_path = os.path.join(models_dir, "ridge_model.pkl")
     tf_path = os.path.join(models_dir, "tf_aqi_model.h5")
     scaler_path = os.path.join(models_dir, "scaler.pkl")
     features_path = os.path.join(models_dir, "feature_names.pkl")
 
-    rf_model, tf_model, scaler, feature_names = None, None, None, None
+    rf_model, ridge_model, tf_model, scaler, feature_names = None, None, None, None, None
 
     if os.path.exists(rf_path):
         with open(rf_path, "rb") as f:
             rf_model = pickle.load(f)
+    if os.path.exists(ridge_path):
+        with open(ridge_path, "rb") as f:
+            ridge_model = pickle.load(f)
     if os.path.exists(scaler_path):
         with open(scaler_path, "rb") as f:
             scaler = pickle.load(f)
@@ -138,7 +142,7 @@ def load_model_artifacts():
         except Exception:
             tf_model = None
 
-    return rf_model, tf_model, scaler, feature_names
+    return rf_model, ridge_model, tf_model, scaler, feature_names
 
 # Sidebar Controls
 st.sidebar.markdown("## ⚙️ Settings Panel")
@@ -146,7 +150,7 @@ st.sidebar.markdown("Configured for **Islamabad** serverless pipelines.")
 
 selected_model_name = st.sidebar.selectbox(
     "Select Forecasting Engine:",
-    ["Random Forest Regressor", "TensorFlow Deep Learning"]
+    ["Ridge Regression (Statistical)", "Random Forest Regressor", "TensorFlow Deep Learning"]
 )
 
 if st.sidebar.button("🔄 Trigger Live Feature Ingestion"):
@@ -165,7 +169,7 @@ st.markdown('<div class="subtitle">Enterprise MLOps forecasting application with
 
 # Load Data & Models
 df = load_feature_store_data()
-rf_model, tf_model, scaler, feature_names = load_model_artifacts()
+rf_model, ridge_model, tf_model, scaler, feature_names = load_model_artifacts()
 
 if df.empty:
     st.warning("⚠️ Feature Store database not populated. Please run backfill script.")
@@ -196,7 +200,13 @@ else:
 
 preds_24h, preds_48h, preds_72h = current_aqi * 1.02, current_aqi * 1.05, current_aqi * 1.08
 
-if selected_model_name == "TensorFlow Deep Learning" and tf_model is not None:
+if selected_model_name == "Ridge Regression (Statistical)" and ridge_model is not None:
+    try:
+        raw_preds = ridge_model.predict(X_scaled)[0]
+        preds_24h, preds_48h, preds_72h = float(raw_preds[0]), float(raw_preds[1]), float(raw_preds[2])
+    except Exception:
+        pass
+elif selected_model_name == "TensorFlow Deep Learning" and tf_model is not None:
     try:
         raw_preds = tf_model.predict(X_scaled, verbose=0)[0]
         preds_24h, preds_48h, preds_72h = float(raw_preds[0]), float(raw_preds[1]), float(raw_preds[2])
