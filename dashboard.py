@@ -71,24 +71,33 @@ st.markdown("""
         margin-top: 8px;
         font-weight: 600;
     }
+    .advisory-card {
+        background: rgba(30, 41, 59, 0.7);
+        border-left: 5px solid #38BDF8;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 20px 0;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(10px);
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# Helper Functions
+# Helper Functions - Official EPA Categorization & Action Guidelines
 def get_risk_badge(aqi_val: float):
     val = round(aqi_val)
     if val <= 50:
-        return "Good", "🟢", "#22C55E"
+        return "Good", "🟢", "#22C55E", "Air quality is satisfactory. Enjoy outdoor physical activities!"
     elif val <= 100:
-        return "Moderate", "🟡", "#EAB308"
+        return "Moderate", "🟡", "#EAB308", "Air quality is acceptable. Unusually sensitive individuals should monitor exertion."
     elif val <= 150:
-        return "Unhealthy for Sensitive Groups", "🟠", "#F97316"
+        return "Unhealthy for Sensitive Groups", "🟠", "#F97316", "Members of sensitive groups (asthma, children, elderly) should reduce prolonged outdoor exertion."
     elif val <= 200:
-        return "Unhealthy", "🔴", "#EF4444"
+        return "Unhealthy", "🔴", "#EF4444", "Everyone may experience health effects. Wear N95 masks outdoors, keep windows closed, and run indoor air purifiers."
     elif val <= 300:
-        return "Very Unhealthy", "Purple", "#A855F7"
+        return "Very Unhealthy", "🟣", "#A855F7", "Health alert: risk of health effects for everyone. Avoid outdoor physical activity and remain indoors."
     else:
-        return "Hazardous", "🟤", "#881337"
+        return "Hazardous", "🟤", "#881337", "Health warning of emergency conditions! Avoid all physical activity outdoors and run indoor HEPA air purifiers."
 
 @st.cache_data(ttl=60)
 def load_feature_store_data():
@@ -152,7 +161,7 @@ if st.sidebar.button("🔄 Trigger Live Feature Ingestion"):
 
 # Header Layout
 st.markdown('<div class="main-title">🌤️ Islamabad AQI Predictor Dashboard</div>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle">Premium MLOps forecasting application with interactive analytics & SHAP explainers</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">Enterprise MLOps forecasting application with EPA standards & SHAP explainers</div>', unsafe_allow_html=True)
 
 # Load Data & Models
 df = load_feature_store_data()
@@ -169,7 +178,7 @@ if islamabad_df.empty:
 
 latest_record = islamabad_df.iloc[-1]
 current_aqi = float(latest_record.get('aqi', 50))
-risk_label, risk_emoji, risk_color = get_risk_badge(current_aqi)
+risk_label, risk_emoji, risk_color, health_advice = get_risk_badge(current_aqi)
 
 # Generate Predictions
 feature_cols = feature_names or [
@@ -205,9 +214,9 @@ elif rf_model is not None:
 # Hazardous AQI Alert Banners
 max_val = max(current_aqi, preds_24h, preds_48h, preds_72h)
 if max_val > 150:
-    st.error(f"🚨 **Hazardous / Unhealthy AQI Alert**: The AQI is forecasted to reach {int(max_val)} (Unhealthy). Minimize prolonged outdoor activities, keep windows closed, and use air purifiers.")
+    st.error(f"🚨 **Hazardous / Unhealthy AQI Alert**: Forecasted AQI peaks at {int(max_val)} (Unhealthy). Wear N95 masks, keep windows closed, and run indoor air purifiers.")
 elif max_val > 100:
-    st.warning(f"⚠️ **Moderate / Sensitive Groups AQI Advisory**: The AQI is forecasted to reach {int(max_val)} (Unhealthy for Sensitive Groups). Sensitive individuals should take precautions.")
+    st.warning(f"⚠️ **Moderate / Sensitive Groups Advisory**: Forecasted AQI peaks at {int(max_val)} (Unhealthy for Sensitive Groups). Sensitive individuals should reduce outdoor exertion.")
 
 # Interactive Metrics Grid (Custom Glassmorphism HTML cards)
 col1, col2, col3, col4 = st.columns(4)
@@ -254,7 +263,17 @@ with col4:
     </div>
     """, unsafe_allow_html=True)
 
-st.markdown("<br>", unsafe_allow_html=True)
+# Dynamic Actionable EPA Health Advisory Card
+st.markdown(f"""
+<div class="advisory-card" style="border-left-color: {risk_color};">
+    <h3 style="margin: 0 0 8px 0; font-size: 1.15rem; color: {risk_color};">
+        {risk_emoji} Official EPA Health Action Guidelines ({risk_label})
+    </h3>
+    <p style="margin: 0; color: #E2E8F0; font-size: 0.95rem; line-height: 1.5;">
+        {health_advice}
+    </p>
+</div>
+""", unsafe_allow_html=True)
 
 # Plotly Interactive Trend Graph
 st.subheader("📈 Interactive AQI Historical & Forecast Trend")
@@ -271,10 +290,8 @@ future_times = [
 ]
 future_values = [preds_24h, preds_48h, preds_72h]
 
-# Create interactive Plotly figure
 fig = go.Figure()
 
-# Historical Line
 fig.add_trace(go.Scatter(
     x=hist_times,
     y=hist_values,
@@ -283,7 +300,6 @@ fig.add_trace(go.Scatter(
     mode="lines+markers"
 ))
 
-# Forecast Line
 fig.add_trace(go.Scatter(
     x=[last_time] + future_times,
     y=[current_aqi] + future_values,
@@ -322,7 +338,6 @@ if rf_model is not None:
             "Impact": impacts
         }).sort_values(by="Impact", ascending=True)
 
-        # Plotly Bar chart for SHAP
         fig_shap = px.bar(
             shap_df,
             x="Impact",
@@ -354,7 +369,6 @@ if rf_model is not None:
             )
 
     except Exception as e:
-        # Fallback Plotly standard RF feature importances
         if hasattr(rf_model, "estimators_"):
             importances = np.mean([tree.feature_importances_ for tree in rf_model.estimators_], axis=0)
             imp_df = pd.DataFrame({
