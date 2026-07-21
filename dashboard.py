@@ -4,7 +4,8 @@ import datetime
 import pickle
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
+import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
 
 # Ensure root directory is in sys.path
@@ -21,22 +22,54 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom Styling
+# Custom Styling (Dark Glassmorphism UI Theme)
 st.markdown("""
 <style>
-    .metric-card {
-        background-color: #1E293B;
-        border-radius: 10px;
-        padding: 15px;
-        color: white;
-        text-align: center;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    body {
+        background-color: #0F172A;
+        color: #E2E8F0;
     }
     .main-title {
-        font-size: 2.5rem;
+        font-size: 2.8rem;
+        font-weight: 800;
+        background: linear-gradient(90deg, #38BDF8, #818CF8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.2rem;
+    }
+    .subtitle {
+        font-size: 1.1rem;
+        color: #94A3B8;
+        margin-bottom: 2rem;
+    }
+    .metric-card {
+        background: rgba(30, 41, 59, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+        backdrop-filter: blur(10px);
+        transition: transform 0.2s ease-in-out;
+    }
+    .metric-card:hover {
+        transform: translateY(-5px);
+    }
+    .metric-value {
+        font-size: 2.2rem;
         font-weight: 700;
-        color: #38BDF8;
-        margin-bottom: 0.5rem;
+        margin-top: 5px;
+    }
+    .metric-label {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #94A3B8;
+    }
+    .metric-delta {
+        font-size: 0.9rem;
+        margin-top: 8px;
+        font-weight: 600;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -53,7 +86,7 @@ def get_risk_badge(aqi_val: float):
     elif val <= 200:
         return "Unhealthy", "🔴", "#EF4444"
     elif val <= 300:
-        return "Very Unhealthy", "🟣", "#A855F7"
+        return "Very Unhealthy", "Purple", "#A855F7"
     else:
         return "Hazardous", "🟤", "#881337"
 
@@ -99,38 +132,37 @@ def load_model_artifacts():
     return rf_model, tf_model, scaler, feature_names
 
 # Sidebar Controls
-st.sidebar.title("⚙️ Control Panel")
-st.sidebar.markdown("### Islamabad AQI Pipeline Controls")
+st.sidebar.markdown("## ⚙️ Settings Panel")
+st.sidebar.markdown("Configured for **Islamabad** serverless pipelines.")
 
-selected_model_name = st.sidebar.radio(
-    "Select Model for Inference:",
+selected_model_name = st.sidebar.selectbox(
+    "Select Forecasting Engine:",
     ["Random Forest Regressor", "TensorFlow Deep Learning"]
 )
 
-if st.sidebar.button("🔄 Trigger Live Feature Refresh"):
-    with st.spinner("Fetching live weather & pollutant data for Islamabad..."):
+if st.sidebar.button("🔄 Trigger Live Feature Ingestion"):
+    with st.spinner("Executing serverless Islamabad real-time stream..."):
         try:
             from pipelines.feature_pipeline import run_feature_pipeline
             run_feature_pipeline()
-            st.sidebar.success("Live features inserted into Feature Store!")
+            st.sidebar.success("New feature data successfully synced!")
             st.cache_data.clear()
         except Exception as e:
-            st.sidebar.error(f"Feature refresh failed: {e}")
+            st.sidebar.error(f"Execution failed: {e}")
 
-# Header
-st.markdown('<div class="main-title">🌤️ Islamabad AQI 3-Day Forecasting Dashboard</div>', unsafe_allow_html=True)
-st.markdown("100% Serverless MLOps Pipeline with SHAP Model Interpretability")
-st.divider()
+# Header Layout
+st.markdown('<div class="main-title">🌤️ Islamabad AQI Predictor Dashboard</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">Premium MLOps forecasting application with interactive analytics & SHAP explainers</div>', unsafe_allow_html=True)
 
 # Load Data & Models
 df = load_feature_store_data()
 rf_model, tf_model, scaler, feature_names = load_model_artifacts()
 
 if df.empty:
-    st.warning("⚠️ Feature Store is empty. Please run `python pipelines/backfill_pipeline.py` first.")
+    st.warning("⚠️ Feature Store database not populated. Please run backfill script.")
     st.stop()
 
-# Get latest record for Islamabad
+# Get latest Islamabad record
 islamabad_df = df[df['city'].str.lower() == 'islamabad'] if 'city' in df.columns else df
 if islamabad_df.empty:
     islamabad_df = df
@@ -170,48 +202,59 @@ elif rf_model is not None:
     except Exception:
         pass
 
-# Metrics Row
+# Interactive Metrics Grid (Custom Glassmorphism HTML cards)
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    st.metric(
-        label="Current AQI (Islamabad)",
-        value=f"{int(current_aqi)} {risk_emoji}",
-        delta=f"Risk: {risk_label}"
-    )
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">Current AQI</div>
+        <div class="metric-value" style="color: {risk_color};">{int(current_aqi)}</div>
+        <div class="metric-delta" style="color: {risk_color};">{risk_emoji} {risk_label}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 with col2:
-    delta_24 = preds_24h - current_aqi
-    st.metric(
-        label="24-Hour Forecast",
-        value=f"{int(preds_24h)} AQI",
-        delta=f"{delta_24:+.1f} change"
-    )
+    chg_24 = preds_24h - current_aqi
+    col_24 = "#22C55E" if chg_24 <= 0 else "#EF4444"
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">24-Hour Forecast</div>
+        <div class="metric-value" style="color: #38BDF8;">{int(preds_24h)}</div>
+        <div class="metric-delta" style="color: {col_24};">{chg_24:+.1f} change</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 with col3:
-    delta_48 = preds_48h - current_aqi
-    st.metric(
-        label="48-Hour Forecast",
-        value=f"{int(preds_48h)} AQI",
-        delta=f"{delta_48:+.1f} change"
-    )
+    chg_48 = preds_48h - current_aqi
+    col_48 = "#22C55E" if chg_48 <= 0 else "#EF4444"
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">48-Hour Forecast</div>
+        <div class="metric-value" style="color: #38BDF8;">{int(preds_48h)}</div>
+        <div class="metric-delta" style="color: {col_48};">{chg_48:+.1f} change</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 with col4:
-    delta_72 = preds_72h - current_aqi
-    st.metric(
-        label="72-Hour Forecast",
-        value=f"{int(preds_72h)} AQI",
-        delta=f"{delta_72:+.1f} change"
-    )
+    chg_72 = preds_72h - current_aqi
+    col_72 = "#22C55E" if chg_72 <= 0 else "#EF4444"
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">72-Hour Forecast</div>
+        <div class="metric-value" style="color: #38BDF8;">{int(preds_72h)}</div>
+        <div class="metric-delta" style="color: {col_72};">{chg_72:+.1f} change</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-st.divider()
+st.markdown("<br>", unsafe_allow_html=True)
 
-# Interactive Line Chart
-st.subheader("📈 Historical Trends & 3-Day Forecast Overlay")
+# Plotly Interactive Trend Graph
+st.subheader("📈 Interactive AQI Historical & Forecast Trend")
 
-hist_data = islamabad_df.tail(48)
-hist_times = list(hist_data['timestamp'])
-hist_aqi = list(hist_data['aqi'])
+hist_data = islamabad_df.tail(48).copy()
+hist_times = hist_data['timestamp'].tolist()
+hist_values = hist_data['aqi'].tolist()
 
 last_time = hist_times[-1] if hist_times else datetime.datetime.now()
 future_times = [
@@ -219,73 +262,104 @@ future_times = [
     last_time + datetime.timedelta(hours=48),
     last_time + datetime.timedelta(hours=72)
 ]
+future_values = [preds_24h, preds_48h, preds_72h]
 
-fig, ax = plt.subplots(figsize=(10, 4))
-ax.plot(hist_times, hist_aqi, label="Historical AQI (Observed)", color="#38BDF8", linewidth=2.5, marker="o")
-ax.plot([last_time] + future_times, [current_aqi, preds_24h, preds_48h, preds_72h],
-        label="3-Day Projected Forecast", color="#F97316", linewidth=2.5, linestyle="--", marker="s")
+# Create interactive Plotly figure
+fig = go.Figure()
 
-ax.set_facecolor("#0F172A")
-fig.patch.set_facecolor("#0F172A")
-ax.tick_params(colors="white")
-ax.xaxis.label.set_color("white")
-ax.yaxis.label.set_color("white")
-ax.title.set_color("white")
-ax.set_ylabel("AQI Value", color="white")
-ax.grid(True, linestyle=":", alpha=0.3)
-ax.legend(facecolor="#1E293B", edgecolor="none", labelcolor="white")
+# Historical Line
+fig.add_trace(go.Scatter(
+    x=hist_times,
+    y=hist_values,
+    name="Historical AQI",
+    line=dict(color="#38BDF8", width=3.5),
+    mode="lines+markers"
+))
 
-st.pyplot(fig)
+# Forecast Line
+fig.add_trace(go.Scatter(
+    x=[last_time] + future_times,
+    y=[current_aqi] + future_values,
+    name="Projected Forecast",
+    line=dict(color="#F59E0B", width=3.5, dash="dash"),
+    mode="lines+markers"
+))
+
+fig.update_layout(
+    plot_bgcolor="#0F172A",
+    paper_bgcolor="#0F172A",
+    font_color="#E2E8F0",
+    margin=dict(l=20, r=20, t=20, b=20),
+    xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.05)"),
+    yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.05)", title="AQI Index"),
+    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+)
+
+st.plotly_chart(fig, use_container_width=True)
 
 st.divider()
 
-# SHAP Model Interpretability Section
-st.subheader("🧠 SHAP Model Interpretability & Feature Importance")
+# Interactive Plotly SHAP Feature Importance
+st.subheader("🧠 SHAP Feature Importance Interpretability")
 
 if rf_model is not None:
     try:
         import shap
-        
-        # Calculate feature impact using Random Forest feature importances / SHAP
         explainer = shap.TreeExplainer(rf_model.estimators_[0])
         shap_values = explainer.shap_values(X_scaled)
+        
+        impacts = np.abs(shap_values[0]) if len(shap_values.shape) > 1 else np.abs(shap_values)
+        
+        shap_df = pd.DataFrame({
+            "Feature": [col.replace("_", " ").upper() for col in feature_cols],
+            "Impact": impacts
+        }).sort_values(by="Impact", ascending=True)
 
-        col_left, col_right = st.columns(2)
+        # Plotly Bar chart for SHAP
+        fig_shap = px.bar(
+            shap_df,
+            x="Impact",
+            y="Feature",
+            orientation="h",
+            color="Impact",
+            color_continuous_scale="Purples",
+            labels={"Impact": "Absolute Influence Score"}
+        )
 
-        with col_left:
-            st.markdown("#### Feature Contributions (Current Sample)")
-            shap_df = pd.DataFrame({
-                "Feature": feature_cols,
-                "Impact Value": np.abs(shap_values[0]) if len(shap_values.shape) > 1 else np.abs(shap_values)
-            }).sort_values(by="Impact Value", ascending=True)
+        fig_shap.update_layout(
+            plot_bgcolor="#0F172A",
+            paper_bgcolor="#0F172A",
+            font_color="#E2E8F0",
+            margin=dict(l=20, r=20, t=20, b=20),
+            coloraxis_showscale=False,
+            xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.05)"),
+            yaxis=dict(showgrid=False)
+        )
 
-            fig_shap, ax_shap = plt.subplots(figsize=(6, 4))
-            ax_shap.barh(shap_df["Feature"], shap_df["Impact Value"], color="#8B5CF6")
-            ax_shap.set_facecolor("#0F172A")
-            fig_shap.patch.set_facecolor("#0F172A")
-            ax_shap.tick_params(colors="white")
-            ax_shap.set_xlabel("Absolute SHAP Contribution", color="white")
-            ax_shap.grid(True, linestyle=":", alpha=0.3)
-            st.pyplot(fig_shap)
-
-        with col_right:
-            st.markdown("#### Feature Summary Breakdown")
-            st.dataframe(shap_df.sort_values(by="Impact Value", ascending=False), use_container_width=True)
+        col_l, col_r = st.columns([2, 1])
+        with col_l:
+            st.plotly_chart(fig_shap, use_container_width=True)
+        with col_r:
+            st.markdown("#### Impact Rankings")
+            st.dataframe(
+                shap_df.sort_values(by="Impact", ascending=False).style.background_gradient(cmap="Purples"),
+                use_container_width=True
+            )
 
     except Exception as e:
-        st.info(f"SHAP explainer fallback visualization: {e}")
-        # Fallback to standard Random Forest feature importances
+        # Fallback Plotly standard RF feature importances
         if hasattr(rf_model, "estimators_"):
             importances = np.mean([tree.feature_importances_ for tree in rf_model.estimators_], axis=0)
-            imp_df = pd.DataFrame({"Feature": feature_cols, "Importance": importances}).sort_values(by="Importance", ascending=True)
-            fig_imp, ax_imp = plt.subplots(figsize=(6, 4))
-            ax_imp.barh(imp_df["Feature"], imp_df["Importance"], color="#10B981")
-            ax_imp.set_facecolor("#0F172A")
-            fig_imp.patch.set_facecolor("#0F172A")
-            ax_imp.tick_params(colors="white")
-            st.pyplot(fig_imp)
-else:
-    st.info("Train `rf_model.pkl` via `python pipelines/training_pipeline.py` to enable SHAP interpretability plots.")
+            imp_df = pd.DataFrame({
+                "Feature": [col.replace("_", " ").upper() for col in feature_cols],
+                "Importance": importances
+            }).sort_values(by="Importance", ascending=True)
 
-st.markdown("---")
-st.caption("Pearls AQI Predictor | 100% Serverless MLOps Pipeline for Islamabad")
+            fig_imp = px.bar(imp_df, x="Importance", y="Feature", orientation="h", color="Importance")
+            fig_imp.update_layout(plot_bgcolor="#0F172A", paper_bgcolor="#0F172A", font_color="#E2E8F0")
+            st.plotly_chart(fig_imp, use_container_width=True)
+else:
+    st.info("Train your model to display interactive feature explainability features.")
+
+st.markdown("<br><hr>", unsafe_allow_html=True)
+st.caption("Pearls AQI Predictor App | Islamabad MLOps serving system")
