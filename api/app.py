@@ -77,6 +77,35 @@ def load_artifacts():
 # Initial load on startup
 load_artifacts()
 
+@app.route("/", methods=["GET"])
+def home():
+    """Default landing route helper."""
+    return """
+    <html>
+        <head>
+            <title>Pearls AQI Predictor API</title>
+            <style>
+                body { font-family: sans-serif; margin: 40px; background: #0F172A; color: #E2E8F0; }
+                h1 { color: #38BDF8; }
+                a { color: #F59E0B; text-decoration: none; font-weight: bold; }
+                a:hover { text-decoration: underline; }
+                .card { background: #1E293B; padding: 20px; border-radius: 8px; margin-top: 20px; }
+            </style>
+        </head>
+        <body>
+            <h1>🌤️ Pearls AQI Predictor REST API</h1>
+            <p>Welcome! The server is running successfully.</p>
+            <div class="card">
+                <h3>Available Endpoints:</h3>
+                <ul>
+                    <li><strong>Health Check:</strong> <a href="/health">/health</a></li>
+                    <li><strong>Forecast Predictions:</strong> <a href="/predict">/predict</a></li>
+                </ul>
+            </div>
+        </body>
+    </html>
+    """, 200
+
 @app.route("/health", methods=["GET"])
 def health_check():
     """Health check endpoint."""
